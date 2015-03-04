@@ -478,8 +478,7 @@ struct input_keymap_entry {
 #define KEY_DUMMY_MENU		251	/* Dummy Touchkey : MENU*/
 #define KEY_ACTIVITY_MENU	252	/* Activity menu key*/
 #define KEY_DUMMY_BACK		253	/* Dummy Touchkey : BACK*/
-#define KEY_RECENT		254	/* Key recent */
-#define KEY_END_CALL		455	/* ENDCALL */
+#define KEY_RECENT	254	/* Key recent */
 
 /* Code 255 is reserved for special needs of AT keyboard driver */
 

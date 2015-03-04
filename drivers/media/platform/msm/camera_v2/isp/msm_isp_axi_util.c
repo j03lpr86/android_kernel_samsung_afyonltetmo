@@ -421,7 +421,8 @@ void msm_isp_calculate_framedrop(
 		HANDLE_TO_IDX(stream_cfg_cmd->axi_stream_handle)];
 	uint32_t framedrop_period = msm_isp_get_framedrop_period(
 	   stream_cfg_cmd->frame_skip_pattern);
-
+	stream_info->frame_skip_pattern =
+		stream_cfg_cmd->frame_skip_pattern;
 	if (stream_cfg_cmd->frame_skip_pattern == SKIP_ALL)
 		stream_info->framedrop_pattern = 0x0;
 	else
@@ -473,6 +474,7 @@ void msm_isp_calculate_bandwidth(
 int msm_isp_request_axi_stream(struct vfe_device *vfe_dev, void *arg)
 {
 	int rc = 0, i;
+	uint32_t io_format = 0;
 	struct msm_vfe_axi_stream_request_cmd *stream_cfg_cmd = arg;
 	struct msm_vfe_axi_stream *stream_info;
 
@@ -496,10 +498,20 @@ int msm_isp_request_axi_stream(struct vfe_device *vfe_dev, void *arg)
 		stream_info[HANDLE_TO_IDX(stream_cfg_cmd->axi_stream_handle)];
 	msm_isp_axi_reserve_wm(&vfe_dev->axi_data, stream_info);
 
-	if (stream_cfg_cmd->stream_src == CAMIF_RAW ||
-		stream_cfg_cmd->stream_src == IDEAL_RAW)
-			vfe_dev->hw_info->vfe_ops.axi_ops.
-				cfg_io_format(vfe_dev, stream_info);
+	if (stream_info->stream_src < RDI_INTF_0) {
+		io_format = vfe_dev->axi_data.src_info[VFE_PIX_0].input_format;
+		if (stream_info->stream_src == CAMIF_RAW ||
+			stream_info->stream_src == IDEAL_RAW) {
+			if (stream_info->stream_src == CAMIF_RAW &&
+				io_format != stream_info->output_format)
+				pr_warn("%s: Overriding input format\n",
+					__func__);
+
+			io_format = stream_info->output_format;
+		}
+		vfe_dev->hw_info->vfe_ops.axi_ops.cfg_io_format(
+			vfe_dev, stream_info->stream_src, io_format);
+	}
 
 	msm_isp_calculate_framedrop(&vfe_dev->axi_data, stream_cfg_cmd);
 
@@ -927,7 +939,12 @@ static int msm_isp_axi_wait_for_cfg_done(struct vfe_device *vfe_dev,
 	spin_lock_irqsave(&vfe_dev->shared_data_lock, flags);
 	init_completion(&vfe_dev->stream_config_complete);
 	vfe_dev->axi_data.pipeline_update = camif_update;
+#if defined(CONFIG_MACH_MILLET3G_CHN_OPEN) || defined(CONFIG_MACH_AFYONLTE_TMO) \
+	|| defined (CONFIG_MACH_AFYONLTE_MTR)
+	vfe_dev->axi_data.stream_update = 1;
+#else
 	vfe_dev->axi_data.stream_update = 2;
+#endif
 	spin_unlock_irqrestore(&vfe_dev->shared_data_lock, flags);
 	rc = wait_for_completion_interruptible_timeout(
 		&vfe_dev->stream_config_complete,
@@ -997,6 +1014,29 @@ static void msm_isp_get_stream_wm_mask(
 		*wm_reload_mask |= (1 << stream_info->wm[i]);
 }
 
+#if defined(CONFIG_MACH_MILLET3G_CHN_OPEN)|| defined(CONFIG_MACH_AFYONLTE_TMO) \
+	|| defined (CONFIG_MACH_AFYONLTE_MTR)
+static void msm_isp_axi_stream_update_new(struct vfe_device *vfe_dev, enum msm_isp_camif_update_state camif_update)
+{
+    int i;
+    struct msm_vfe_axi_shared_data *axi_data = &vfe_dev->axi_data;
+
+    for (i = 0; i < MAX_NUM_STREAM; i++) {
+        if (axi_data->stream_info[i].state == START_PENDING || axi_data->stream_info[i].state == STOP_PENDING) {
+            msm_isp_axi_stream_enable_cfg(vfe_dev, &axi_data->stream_info[i]);
+            axi_data->stream_info[i].state = axi_data->stream_info[i].state == START_PENDING ? STARTING : STOPPING;
+        } else if (axi_data->stream_info[i].state == STARTING || axi_data->stream_info[i].state == STOPPING) {
+                   axi_data->stream_info[i].state = axi_data->stream_info[i].state == STARTING ? ACTIVE : INACTIVE;
+        }
+    }
+
+    if (camif_update == DISABLE_CAMIF) {
+        vfe_dev->hw_info->vfe_ops.stats_ops.enable_module(vfe_dev, 0xFF, 0);
+        vfe_dev->axi_data.pipeline_update = NO_UPDATE;
+    }
+
+}
+#endif
 static int msm_isp_start_axi_stream(struct vfe_device *vfe_dev,
 			struct msm_vfe_axi_stream_cfg_cmd *stream_cfg_cmd,
 			enum msm_isp_camif_update_state camif_update)
@@ -1045,8 +1085,16 @@ static int msm_isp_start_axi_stream(struct vfe_device *vfe_dev,
 		vfe_dev->hw_info->vfe_ops.core_ops.
 			update_camif_state(vfe_dev, camif_update);
 	}
+#if defined(CONFIG_MACH_MILLET3G_CHN_OPEN)|| defined(CONFIG_MACH_AFYONLTE_TMO) \
+	|| defined (CONFIG_MACH_AFYONLTE_MTR)
+	if (wait_for_complete){
+		msm_isp_axi_stream_update_new(vfe_dev, camif_update);
+		rc = msm_isp_axi_wait_for_cfg_done(vfe_dev, camif_update);
+	}
+#else
 	if (wait_for_complete)
 		rc = msm_isp_axi_wait_for_cfg_done(vfe_dev, camif_update);
+#endif
 
 	return rc;
 }
@@ -1063,8 +1111,14 @@ static int msm_isp_stop_axi_stream(struct vfe_device *vfe_dev,
 			HANDLE_TO_IDX(stream_cfg_cmd->stream_handle[i])];
 		stream_info->state = STOP_PENDING;
 	}
-
+#if defined(CONFIG_MACH_MILLET3G_CHN_OPEN)|| defined(CONFIG_MACH_AFYONLTE_TMO) \
+	|| defined (CONFIG_MACH_AFYONLTE_MTR)
+	pr_err("[richard] %s : state [%d], camif_update [%d]\n", __func__, stream_info->state, camif_update);
+	msm_isp_axi_stream_update_new(vfe_dev, DISABLE_CAMIF);
+	rc = msm_isp_axi_wait_for_cfg_done(vfe_dev, NO_UPDATE);
+#else
 	rc = msm_isp_axi_wait_for_cfg_done(vfe_dev, camif_update);
+#endif
 	if (rc < 0) {
 		pr_err("%s: wait for config done failed\n", __func__);
 		pr_err("%s:<DEBUG00>timeout:no frame from sensor\n", __func__);
@@ -1078,6 +1132,7 @@ static int msm_isp_stop_axi_stream(struct vfe_device *vfe_dev,
 		}
 	}
 	msm_isp_update_stream_bandwidth(vfe_dev);
+	
 	if (camif_update == DISABLE_CAMIF)
 		vfe_dev->hw_info->vfe_ops.core_ops.
 			update_camif_state(vfe_dev, DISABLE_CAMIF);

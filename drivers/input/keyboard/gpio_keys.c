@@ -68,11 +68,13 @@ struct gpio_button_data {
 	spinlock_t lock;
 	bool disabled;
 	bool key_pressed;
+	#ifdef CONFIG_SEC_DVFS
 	#ifdef KEY_BOOSTER
 	struct delayed_work	work_dvfs_off;
 	struct delayed_work	work_dvfs_chg;
 	bool dvfs_lock_status;
 	struct mutex		dvfs_lock;
+	#endif
 	#endif
 };
 
@@ -423,6 +425,7 @@ static struct attribute_group gpio_keys_attr_group = {
 	.attrs = gpio_keys_attrs,
 };
 
+#ifdef CONFIG_SEC_DVFS
 #ifdef KEY_BOOSTER
 static void gpio_key_change_dvfs_lock(struct work_struct *work)
 {
@@ -496,6 +499,7 @@ static int gpio_key_init_dvfs(struct gpio_button_data *bdata)
 	return 0;
 }
 #endif
+#endif
 
 static void gpio_keys_gpio_report_event(struct gpio_button_data *bdata)
 {
@@ -523,16 +527,20 @@ static void gpio_keys_gpio_work_func(struct work_struct *work)
 {
 	struct gpio_button_data *bdata =
 		container_of(work, struct gpio_button_data, work);
+#ifdef CONFIG_SEC_DVFS
 #ifdef KEY_BOOSTER
 	const struct gpio_keys_button *button = bdata->button;
 	int state = (gpio_get_value_cansleep(button->gpio) ? 1 : 0) ^ button->active_low;
 #endif
+#endif
 	gpio_keys_gpio_report_event(bdata);
+#ifdef CONFIG_SEC_DVFS
 #ifdef KEY_BOOSTER
 	if (button->code == KEY_HOMEPAGE)
 	{
 		gpio_key_set_dvfs_lock(bdata, !!state);
 	}
+#endif
 #endif
 }
 
@@ -743,7 +751,7 @@ static void flip_cover_work(struct work_struct *work)
 			__func__, ddata->flip_cover);
 
 		input_report_switch(ddata->input,
-			SW_FLIP, ddata->flip_cover);
+			SW_LID, !ddata->flip_cover);
 		input_sync(ddata->input);
 	} else {
 		printk(KERN_DEBUG "%s : Value is not same!\n", __func__);
@@ -761,7 +769,7 @@ static void flip_cover_work(struct work_struct *work)
 		__func__, ddata->flip_cover);
 
 	input_report_switch(ddata->input,
-		SW_FLIP, ddata->flip_cover);
+		SW_LID, !ddata->flip_cover);
 	input_sync(ddata->input);
 }
 #endif // CONFIG_SEC_FACTORY
@@ -799,7 +807,7 @@ static irqreturn_t flip_cover_detect(int irq, void *dev_id)
 		ddata->flip_cover, ddata->flip_cover?"on":"off");
 
 	input_report_switch(ddata->input,
-		SW_FLIP, ddata->flip_cover);
+		SW_LID, !ddata->flip_cover);
 	input_sync(ddata->input);
 out:
 	return IRQ_HANDLED;
@@ -1038,8 +1046,7 @@ static int gpio_keys_get_devtree_pdata(struct device *dev,
 	else{
 		if(!of_property_read_u32(node, "vddo-voltage", &reg))
 		regulator_set_voltage(vddo_vreg, reg*1000, reg*1000);
-		if(regulator_enable(vddo_vreg))
-			return -EINVAL;
+		regulator_enable(vddo_vreg);
 	}
 	/* First count the subnodes */
 	pdata->nbuttons = 0;
@@ -1143,9 +1150,7 @@ static void gpio_remove_key(struct gpio_button_data *bdata)
 
 #ifdef CONFIG_SEC_PATEK_PROJECT
 extern int check_short_key(void);
-#endif
-#if defined(CONFIG_SEC_PATEK_PROJECT) || defined(CONFIG_SEC_S_PROJECT)
-extern int check_short_pkey(void);	// using qpnp_power_on.c
+extern int check_short_pkey(void);
 #endif
 
 static ssize_t  sysfs_key_onoff_show(struct device *dev,
@@ -1170,33 +1175,6 @@ static ssize_t  sysfs_key_onoff_show(struct device *dev,
 	return snprintf(buf, 5, "%d\n", state);
 }
 static DEVICE_ATTR(sec_key_pressed, 0664 , sysfs_key_onoff_show, NULL);
-
-#if defined(CONFIG_SEC_S_PROJECT) 
-static ssize_t sysfs_key_code_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
-{
-	struct gpio_keys_drvdata *ddata = dev_get_drvdata(dev);
-	int i;
-	int volume_up=0, volume_down=0, power=0;
-
-	for (i = 0; i < ddata->n_buttons; i++) {
-		struct gpio_button_data *bdata = &ddata->data[i];
-		
-		if(bdata->button->code==KEY_VOLUMEUP)
-			volume_up = (gpio_get_value_cansleep(bdata->button->gpio) ? 1 : 0) ^ bdata->button->active_low;
-		else if(bdata->button->code==KEY_VOLUMEDOWN)
-			volume_down = (gpio_get_value_cansleep(bdata->button->gpio) ? 1 : 0) ^ bdata->button->active_low;
-		
-		//pr_info("%s, code=%d %d/%d\n",  __func__,bdata->button->code, i,ddata->n_buttons );
-	}
-	power = check_short_pkey();
-
-	sprintf(buf, "%d %d %d", volume_up, volume_down, power);
-
-	return strlen(buf);
-}
-static DEVICE_ATTR(sec_key_pressed_code, 0664 , sysfs_key_code_show, NULL);
-#endif
 
 /* the volume keys can be the wakeup keys in special case */
 static ssize_t wakeup_enable(struct device *dev,
@@ -1309,7 +1287,7 @@ static int __devinit gpio_keys_probe(struct platform_device *pdev)
 #ifdef CONFIG_SENSORS_HALL
 	if(ddata->gpio_flip_cover != 0) {
 		input->evbit[0] |= BIT_MASK(EV_SW);
-		input_set_capability(input, EV_SW, SW_FLIP);
+		input_set_capability(input, EV_SW, SW_LID);
 	}
 #endif
 #ifdef CONFIG_SENSORS_HALL_IRQ_CTRL
@@ -1340,12 +1318,14 @@ static int __devinit gpio_keys_probe(struct platform_device *pdev)
 		error = gpio_keys_setup_key(pdev, input, bdata, button);
 		if (error)
 			goto fail2;
+#ifdef CONFIG_SEC_DVFS
 #ifdef KEY_BOOSTER
 		error = gpio_key_init_dvfs(bdata);
 		if (error < 0) {
 			dev_err(dev, "Fail get dvfs level for touch booster\n");
 			goto fail2;
 		}
+#endif
 #endif
 		if (button->wakeup)
 			wakeup = 1;
@@ -1382,14 +1362,6 @@ static int __devinit gpio_keys_probe(struct platform_device *pdev)
 		pr_err("Failed to create device file in sysfs entries(%s)!\n",
 				dev_attr_sec_key_pressed.attr.name);
 	}
-#if defined(CONFIG_SEC_S_PROJECT) 	
-	ret = device_create_file(sec_key, &dev_attr_sec_key_pressed_code);
-	if (ret) {
-		pr_err("Failed to create device file in sysfs entries(%s)!\n",
-				dev_attr_sec_key_pressed_code.attr.name);
-	}
-#endif
-	
 #ifdef CONFIG_SENSORS_HALL_IRQ_CTRL
 	if(ddata->gpio_flip_cover != 0) {
 		ret = device_create_file(sec_key, &dev_attr_hall_irq_ctrl);

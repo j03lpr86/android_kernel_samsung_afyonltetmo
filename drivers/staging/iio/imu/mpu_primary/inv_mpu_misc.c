@@ -45,7 +45,7 @@
 #define DMP_PRECISION                   1000
 #define DMP_MAX_DIVIDER                 4
 #define DMP_MAX_MIN_TAPS                4
-#define DMP_IMAGE_CRC_VALUE             0x34fc5c2d
+#define DMP_IMAGE_CRC_VALUE             0xd2b1c2e4
 
 /*--- Test parameters defaults --- */
 #define DEF_OLDEST_SUPP_PROD_REV        8
@@ -2064,6 +2064,8 @@ ssize_t inv_get_shealth_instant_cadence(struct inv_mpu_state *st, char* buf)
 		strcat(buf, concat);
 	}
 	strcat(buf, "\n");
+
+	pr_info("[SEHALTH] %s %s\n", __func__, buf);
 
 	return strlen(buf);
 }

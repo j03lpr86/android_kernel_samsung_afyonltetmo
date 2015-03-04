@@ -82,15 +82,10 @@
 #endif
 
 #if defined(CONFIG_FB_MSM_MIPI_MAGNA_OCTA_VIDEO_720P_PT_PANEL)\
+	|| defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)\
 	|| defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_VIDEO_HD_PANEL)
 #define SMART_ACL
 #define NOT_USING_ACL_CONT
-#endif
-
-#if defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)
-#define SMART_ACL
-#define NOT_USING_ACL_CONT
-#define HBM_RE
 #endif
 
 #define DT_CMD_HDR 6
@@ -388,13 +383,8 @@ int set_panel_rev(unsigned int id)
 			msd.panel_350cd = 1;
 			break;
 		case 0x47:
-			pr_info("%s : 0x47 EVT2_EA8061_Hestia_REV_I \n",__func__);
-			msd.id3 = EVT2_EA8061_HESTIA_REV_I;
-			msd.panel_350cd = 1;
-			break;
-		case 0x48:
-			pr_info("%s : 0x48 EVT2_EA8061_Hestia_REV_J \n",__func__);
-			msd.id3 = EVT2_EA8061_HESTIA_REV_J;
+			pr_info("%s : 0x47 EVT0__EA8061_Hestia_REV_I \n",__func__);
+			msd.id3 = EVT0_EA8061_HESTIA_REV_I;
 			msd.panel_350cd = 1;
 			break;
 		case 0x95:
@@ -566,7 +556,7 @@ void mdss_dsi_samsung_panel_reset(struct mdss_panel_data *pdata, int enable)
 #if defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)
 		if (gpio_is_valid(ctrl_pdata->expander_enble_gpio)) {
 			gpio_set_value((ctrl_pdata->expander_enble_gpio), 1);
-			mdelay(5);
+			msleep(5);
 		}
 		if (gpio_is_valid(ctrl_pdata->rst_gpio)) {
 			rc = gpio_tlmm_config(GPIO_CFG(ctrl_pdata->rst_gpio, 0,
@@ -581,18 +571,8 @@ void mdss_dsi_samsung_panel_reset(struct mdss_panel_data *pdata, int enable)
 				GPIO_CFG_ENABLE);
 			if (rc)
 				pr_err("request disp_en_gpio failed, rc=%d\n",rc);
-			gpio_set_value((ctrl_pdata->disp_en_gpio), 1);
-			wmb();
 		}
-		if (gpio_is_valid(ctrl_pdata->rst_gpio)) {
-			gpio_set_value((ctrl_pdata->rst_gpio), 0);
-			mdelay(3);
-			wmb();
-			gpio_set_value((ctrl_pdata->rst_gpio), 1);
-			mdelay(10);
-			wmb();
-		}
-#else
+#endif
 		if (gpio_is_valid(ctrl_pdata->rst_gpio)) {
 			gpio_set_value((ctrl_pdata->rst_gpio), 1);
 			msleep(20);
@@ -608,7 +588,6 @@ void mdss_dsi_samsung_panel_reset(struct mdss_panel_data *pdata, int enable)
 			gpio_set_value((ctrl_pdata->disp_en_gpio), 1);
 			wmb();
 		}
-#endif
 #if defined(CONFIG_FB_MSM_MIPI_MAGNA_OCTA_VIDEO_720P_PT_PANEL)
 		if (gpio_is_valid(ctrl_pdata->disp_en_gpio2)) {
 			gpio_set_value((ctrl_pdata->disp_en_gpio2), 1);
@@ -849,8 +828,7 @@ static struct dsi_cmd get_aid_aor_control_set(int cd_idx)
 		|| msd.id3 == EVT2_EA8061V_REV_E\
 		|| msd.id3 == EVT2_FRESCO_REV_G\
 		|| msd.id3 == EVT0_EA8061V_KMINI_REV_A\
-		|| msd.id3 == EVT2_EA8061_HESTIA_REV_I\
-		||msd.id3 == EVT2_EA8061_HESTIA_REV_J)
+		|| msd.id3 == EVT0_EA8061_HESTIA_REV_I)
 		c_payload = aid_cmds_list_350.cmd_desc[cmd_idx].payload;
 	else
 		c_payload = aid_cmds_list.cmd_desc[cmd_idx].payload;
@@ -865,8 +843,7 @@ static struct dsi_cmd get_aid_aor_control_set(int cd_idx)
 			|| msd.id3 == EVT2_EA8061V_REV_E\
 			|| msd.id3 == EVT2_FRESCO_REV_G\
 			|| msd.id3 == EVT0_EA8061V_KMINI_REV_A\
-			|| msd.id3 == EVT2_EA8061_HESTIA_REV_I\
-			||msd.id3 == EVT2_EA8061_HESTIA_REV_J){
+			|| msd.id3 == EVT0_EA8061_HESTIA_REV_I){
 			p_payload = aid_cmds_list_350.cmd_desc[p_idx].payload;
 			payload_size = aid_cmds_list_350.cmd_desc[p_idx].dchdr.dlen;
 		} else {
@@ -886,8 +863,7 @@ static struct dsi_cmd get_aid_aor_control_set(int cd_idx)
 		|| msd.id3 == EVT2_EA8061V_REV_E\
 		|| msd.id3 == EVT2_FRESCO_REV_G\
 		|| msd.id3 == EVT0_EA8061V_KMINI_REV_A\
-		|| msd.id3 == EVT2_EA8061_HESTIA_REV_I\
-		||msd.id3 == EVT2_EA8061_HESTIA_REV_J)
+		|| msd.id3 == EVT0_EA8061_HESTIA_REV_I)
 		aid_control.cmd_desc = &(aid_cmds_list_350.cmd_desc[cmd_idx]);
 	else
 		aid_control.cmd_desc = &(aid_cmds_list.cmd_desc[cmd_idx]);
@@ -1058,10 +1034,6 @@ static struct dsi_cmd get_elvss_control_set(int cd_idx)
 
 	/* Get the command desc */
 	if(msd.dstat.acl_on || msd.dstat.siop_status) {
-#if defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)
-	if ((msd.id3 == EVT2_EA8061V_REV_D) || (msd.id3 == EVT2_EA8061V_REV_E) )
-		smart_acl_elvss_cmds_list.cmd_desc[cmd_idx].payload[1] = 0x4C;
-#endif
 		cmd_idx = smart_acl_elvss_map_table.cmd_idx[cd_idx];
 		payload = smart_acl_elvss_cmds_list.cmd_desc[cmd_idx].payload;
 #if defined(TEMPERATURE_ELVSS_S6E8AA4)
@@ -1070,10 +1042,6 @@ static struct dsi_cmd get_elvss_control_set(int cd_idx)
 		elvss_control.cmd_desc = &(smart_acl_elvss_cmds_list.cmd_desc[cmd_idx]);
 		pr_info("ELVSS for SMART_ACL cd_idx=%d, cmd_idx=%d\n", cd_idx, cmd_idx);
 	} else {
-#if defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)
-	if ((msd.id3 == EVT2_EA8061V_REV_D) || (msd.id3 == EVT2_EA8061V_REV_E) )
-		smart_acl_elvss_cmds_list.cmd_desc[cmd_idx].payload[1] = 0x5C;
-#endif
 		cmd_idx = elvss_map_table.cmd_idx[cd_idx];
 		payload = elvss_cmds_list.cmd_desc[cmd_idx].payload;
 #if defined(TEMPERATURE_ELVSS_S6E8AA4)
@@ -1242,23 +1210,6 @@ static struct dsi_cmd get_hbm_etc_control_set(void)
 		etc_hbm_control.cmd_desc = &(hbm_etc_cmds_evt0_second_list.cmd_desc[0]);
 		etc_hbm_control.num_of_cmds = hbm_etc_cmds_evt0_second_list.num_of_cmds;
 	}
-#elif defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)
-	if ((msd.id3 == EVT2_EA8061V_REV_D) || (msd.id3 == EVT2_EA8061V_REV_E) ){
-		if (msd.dstat.acl_on || msd.dstat.siop_status) {
-			hbm_etc_cmds_list.cmd_desc[2].payload[1] = 0x4C;
-			hbm_etc_cmds_list.cmd_desc[6].payload[1] = 0x02;
-		} else {
-			hbm_etc_cmds_list.cmd_desc[2].payload[1] = 0x5C;
-			hbm_etc_cmds_list.cmd_desc[6].payload[1] = 0x00;
-		}
-	} else {
-		if (msd.dstat.acl_on || msd.dstat.siop_status)
-			hbm_etc_cmds_list.cmd_desc[5].payload[1] = 0x02;
-		else
-			hbm_etc_cmds_list.cmd_desc[5].payload[1] = 0x00;
-	}
-	etc_hbm_control.cmd_desc = &(hbm_etc_cmds_list.cmd_desc[0]);
-	etc_hbm_control.num_of_cmds = hbm_etc_cmds_list.num_of_cmds;
 #else
 #if defined(TEMPERATURE_ELVSS_S6E8AA4)
 		if (msd.dstat.temperature > 0) {
@@ -2769,8 +2720,6 @@ static int mdss_dsi_panel_dimming_init(struct mdss_panel_data *pdata)
 		/* LSI panel EVT1_rev C :  set RVdd*/
 		if((msd.id3 == EVT1_REV_D) && (get_oled_id()))
 			display_qcom_on_cmds.cmd_desc[3].payload[3] = 0x00;
-#elif defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)
-		memcpy(&hbm_etc_cmds_list.cmd_desc[4].payload[1], hbm_buffer+6, 1);
 #endif
 		/* for rev I panel */
 		mipi_samsung_read_nv_mem(pdata, &nv_mtp_hbm2_read_cmds, hbm_buffer);

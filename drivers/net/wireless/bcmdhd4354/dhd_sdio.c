@@ -21,7 +21,7 @@
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: dhd_sdio.c 479845 2014-05-22 09:09:17Z $
+ * $Id: dhd_sdio.c 476607 2014-05-09 09:25:12Z $
  */
 
 #include <typedefs.h>
@@ -296,9 +296,7 @@ typedef struct dhd_bus {
 	int32		sd_rxchain;		/* If bcmsdh api accepts PKT chains */
 	bool		use_rxchain;		/* If dhd should use PKT chains */
 	bool		sleeping;		/* Is SDIO bus sleeping? */
-#if defined(SUPPORT_P2P_GO_PS)
 	wait_queue_head_t bus_sleep;
-#endif /* LINUX && SUPPORT_P2P_GO_PS */
 	uint		rxflow_mode;		/* Rx flow control mode */
 	bool		rxflow;			/* Is rx flow control on */
 	uint		prev_rxlim_hit;		/* Is prev rx limit exceeded (per dpc schedule) */
@@ -1563,9 +1561,7 @@ dhdsdio_bussleep(dhd_bus_t *bus, bool sleep)
 
 		/* Change state */
 		bus->sleeping = TRUE;
-#if defined(SUPPORT_P2P_GO_PS)
 		wake_up(&bus->bus_sleep);
-#endif /* LINUX && SUPPORT_P2P_GO_PS */
 	} else {
 		/* Waking up: bus power up is ok, set local state */
 
@@ -4588,21 +4584,6 @@ dhd_bus_init(dhd_pub_t *dhdp, bool enforce_mutex)
 	if (dhdp->busstate != DHD_BUS_DATA)
 		dhdsdio_clkctl(bus, CLK_NONE, FALSE);
 
-#if defined(CUSTOMER_HW4) && defined(BCMHOST_XTAL_PU_TIME_MOD)
-#ifdef BCM4330_CHIP
-	bcmsdh_reg_write(bus->sdh, 0x18000620, 2, 11);
-	bcmsdh_reg_write(bus->sdh, 0x18000628, 4, 0x0000F801);
-#endif
-#ifdef BCM4334_CHIP
-	bcmsdh_reg_write(bus->sdh, 0x18000620, 2, 11);
-	bcmsdh_reg_write(bus->sdh, 0x18000628, 4, 0x00F80001);
-#endif
-#ifdef BCM43430_CHIP
-	bcmsdh_reg_write(bus->sdh, 0x18000620, 2, 12);
-	bcmsdh_reg_write(bus->sdh, 0x18000628, 4, 0x00A60001);
-#endif
-#endif /* defined(CUSTOMER_HW4) && defined(BCMHOST_XTAL_PU_TIME_MOD */
-
 exit:
 	if (enforce_mutex)
 		dhd_os_sdunlock(bus->dhd);
@@ -7089,16 +7070,11 @@ dhdsdio_probe(uint16 venid, uint16 devid, uint16 bus_no, uint16 slot,
 	sd1idle = TRUE;
 	dhd_readahead = TRUE;
 	retrydata = FALSE;
-
-#if defined(DISABLE_FLOW_CONTROL)
-	dhd_doflow = FALSE;
-#else
 #if !defined(PLATFORM_MPS) && !defined(CUSTOMER_HW4)
 	dhd_doflow = FALSE;
 #else
 	dhd_doflow = TRUE;
 #endif /* OEM_ANDROID */
-#endif /* DISABLE_FLOW_CONTROL */
 	dhd_dongle_ramsize = 0;
 	dhd_txminmax = DHD_TXMINMAX;
 
@@ -7182,10 +7158,6 @@ dhdsdio_probe(uint16 venid, uint16 devid, uint16 bus_no, uint16 slot,
 	bus->tx_seq = SDPCM_SEQUENCE_WRAP - 1;
 	bus->usebufpool = FALSE; /* Use bufpool if allocated, else use locally malloced rxbuf */
 
-#if defined(SUPPORT_P2P_GO_PS)
-	init_waitqueue_head(&bus->bus_sleep);
-#endif /* LINUX && SUPPORT_P2P_GO_PS */
-
 	/* attempt to attach to the dongle */
 	if (!(dhdsdio_probe_attach(bus, osh, sdh, regsva, devid))) {
 		DHD_ERROR(("%s: dhdsdio_probe_attach failed\n", __FUNCTION__));
@@ -7250,12 +7222,28 @@ dhdsdio_probe(uint16 venid, uint16 devid, uint16 bus_no, uint16 slot,
 		goto fail;
 	}
 
+#if defined(CUSTOMER_HW4) && defined(BCMHOST_XTAL_PU_TIME_MOD)
+#ifdef BCM4330_CHIP
+	bcmsdh_reg_write(bus->sdh, 0x18000620, 2, 11);
+	bcmsdh_reg_write(bus->sdh, 0x18000628, 4, 0x0000F801);
+#endif
+#ifdef BCM4334_CHIP
+	bcmsdh_reg_write(bus->sdh, 0x18000620, 2, 11);
+	bcmsdh_reg_write(bus->sdh, 0x18000628, 4, 0x00F80001);
+#endif
+#ifdef BCM43430_CHIP
+	bcmsdh_reg_write(bus->sdh, 0x18000620, 2, 12);
+	bcmsdh_reg_write(bus->sdh, 0x18000628, 4, 0x00A60001);
+#endif
+#endif /* defined(CUSTOMER_HW4) && defined(BCMHOST_XTAL_PU_TIME_MOD */
 #if defined(MULTIPLE_SUPPLICANT)
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 25))
 	mutex_unlock(&_dhd_sdio_mutex_lock_);
 	DHD_ERROR(("%s : the lock is released.\n", __FUNCTION__));
 #endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 27)) */
 #endif 
+
+	init_waitqueue_head(&bus->bus_sleep);
 
 	return bus;
 
@@ -8104,15 +8092,13 @@ dhdsdio_suspend(void *context)
 	int ret = 0;
 
 	dhd_bus_t *bus = (dhd_bus_t*)context;
-#ifdef SUPPORT_P2P_GO_PS
 	int wait_time = 0;
 
 	if (bus->idletime > 0) {
 		wait_time = msecs_to_jiffies(bus->idletime * dhd_watchdog_ms);
 	}
-#endif /* SUPPORT_P2P_GO_PS */
+
 	ret = dhd_os_check_wakelock(bus->dhd);
-#ifdef SUPPORT_P2P_GO_PS
 	if ((!ret) && (bus->dhd->up)) {
 		if (wait_event_timeout(bus->bus_sleep, bus->sleeping, wait_time) == 0) {
 			if (!bus->sleeping) {
@@ -8120,7 +8106,6 @@ dhdsdio_suspend(void *context)
 			}
 		}
 	}
-#endif /* SUPPORT_P2P_GO_PS */
 	return ret;
 }
 

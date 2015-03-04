@@ -578,12 +578,6 @@ isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
 		/* Successfully isolated */
 		cc->finished_update_migrate = true;
 		del_page_from_lru_list(zone, page, page_lru(page));
-
-#if defined(CONFIG_CMA_PAGE_COUNTING)
-		if (unevictable)
-			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES + 1 + page_lru(page), -1);
-#endif
-
 		list_add(&page->lru, migratelist);
 		cc->nr_migratepages++;
 		nr_isolated++;

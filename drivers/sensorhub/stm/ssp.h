@@ -591,10 +591,6 @@ struct ssp_data {
 	int chg;
 	struct regulator *reg_hub;
 	struct regulator *reg_sns;
-	u8 regulator_is_enable;
-
-	const char *ges_vdd;
-	const char *ges_led;
 
 	struct list_head pending_list;
 	void (*ssp_big_task[BIG_TYPE_MAX])(struct work_struct *);

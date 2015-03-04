@@ -1740,12 +1740,6 @@ static int __devinit max77804k_muic_probe(struct platform_device *pdev)
 static int max77804k_suspend(struct device *dev)
 {
     struct max77804k_muic_info *info = dev_get_drvdata(dev);
-#if defined(CONFIG_CHARGER_SMB1357)
-	if (info) {
-		if (info->path == PATH_USB_CP)
-		return 0;
-	}
-#endif
     if (info)
 	max77804k_muic_set_path(info, PATH_OPEN);
     else
@@ -1757,12 +1751,6 @@ static int max77804k_suspend(struct device *dev)
 static int max77804k_resume(struct device *dev)
 {
     struct max77804k_muic_info *info = dev_get_drvdata(dev);
-#if defined(CONFIG_CHARGER_SMB1357)
-	if (info) {
-		if (info->path == PATH_USB_CP)
-		return 0;
-	}
-#endif
     if (info)
 	max77804k_muic_set_path(info, info->path);
     else

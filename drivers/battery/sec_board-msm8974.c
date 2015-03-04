@@ -122,13 +122,8 @@ static struct battery_data_t samsung_battery_data[] = {
 		.RCOMP_charging = 0x62,
 		.temp_cohot = -175,
 		.temp_cocold = -5825,
-#elif defined(CONFIG_SEC_S_PROJECT)
-		.RCOMP0 = 0x5B,
-		.RCOMP_charging = 0x5B,
-		.temp_cohot = -1400,
-		.temp_cocold = -4700,
 #elif defined(CONFIG_SEC_K_PROJECT) || defined(CONFIG_SEC_KACTIVE_PROJECT) || \
-		defined(CONFIG_SEC_PATEK_PROJECT)
+		defined(CONFIG_SEC_S_PROJECT) || defined(CONFIG_SEC_PATEK_PROJECT)
 		.RCOMP0 = 0x5D,
 		.RCOMP_charging = 0x5D,
 		.temp_cohot = -175,
@@ -151,10 +146,6 @@ static struct battery_data_t samsung_battery_data[] = {
 		.Capacity = 0x3F76, /* N1/N2: 8123mAh */
 #elif defined(CONFIG_MACH_MONDRIAN)
 		.Capacity = 0x2456, /* Mondrian : 4651mAh */
-#elif defined(CONFIG_MACH_KLIMT)
-		.Capacity = 0x2710, /* KLIMT : 5000mAh */
-#elif defined(CONFIG_MACH_CHAGALL)
-		.Capacity = 0x3CD8, /* CHAGALL : 7788mAh */
 #else
 		.Capacity = 0x4A38, /* V1/V2: 9500mAh */
 #endif
@@ -802,34 +793,6 @@ static sec_bat_adc_table_data_t temp_table[] = {
 	{-300,  -350},
 	{-400,  -450},
 };
-#elif defined(CONFIG_MACH_KLIMT)
-static sec_bat_adc_table_data_t temp_table[] = {
-	{1100,	1100},
-	{695,	900},
-	{678,	850},
-	{661,	800},
-	{641,   750},
-	{619,   700},
-	{593,	650},
-	{562,   600},
-	{529,   550},
-	{495,   500},
-	{454,   450},
-	{412,   400},
-	{367,   350},
-	{318,   300},
-	{267,   250},
-	{213,	200},
-	{158,	150},
-	{105,	100},
-	{53,	50},
-	{6,	0},
-	{-40,  -50},
-	{-71,  -100},
-	{-120, -150},
-	{-155,  -200},
-	{-350,  -400},
-};
 #else
 static sec_bat_adc_table_data_t temp_table[] = {
 	{25950, 900},
@@ -898,15 +861,15 @@ static sec_bat_adc_table_data_t temp_table[] = {
 #elif defined(CONFIG_MACH_KSPORTSLTE_SPR)
 #define TEMP_HIGH_THRESHOLD_EVENT	640
 #define TEMP_HIGH_RECOVERY_EVENT		465
-#define TEMP_LOW_THRESHOLD_EVENT		-10
+#define TEMP_LOW_THRESHOLD_EVENT		-5
 #define TEMP_LOW_RECOVERY_EVENT		13
 #define TEMP_HIGH_THRESHOLD_NORMAL	545
 #define TEMP_HIGH_RECOVERY_NORMAL	465
-#define TEMP_LOW_THRESHOLD_NORMAL	-10
+#define TEMP_LOW_THRESHOLD_NORMAL	0
 #define TEMP_LOW_RECOVERY_NORMAL	23
 #define TEMP_HIGH_THRESHOLD_LPM		545
 #define TEMP_HIGH_RECOVERY_LPM		475
-#define TEMP_LOW_THRESHOLD_LPM		-10
+#define TEMP_LOW_THRESHOLD_LPM		21
 #define TEMP_LOW_RECOVERY_LPM		23
 #elif defined(CONFIG_MACH_KACTIVELTE_ATT)
 #define TEMP_HIGH_THRESHOLD_EVENT	600
@@ -1355,19 +1318,6 @@ static sec_bat_adc_table_data_t temp_table[] = {
 #define TEMP_LOW_THRESHOLD_LPM		-50
 #define TEMP_LOW_RECOVERY_LPM		0
 #endif
-#elif defined(CONFIG_MACH_KLIMT)
-#define TEMP_HIGH_THRESHOLD_EVENT	600
-#define TEMP_HIGH_RECOVERY_EVENT	470
-#define TEMP_LOW_THRESHOLD_EVENT	-50
-#define TEMP_LOW_RECOVERY_EVENT		0
-#define TEMP_HIGH_THRESHOLD_NORMAL	540
-#define TEMP_HIGH_RECOVERY_NORMAL	470
-#define TEMP_LOW_THRESHOLD_NORMAL	-50
-#define TEMP_LOW_RECOVERY_NORMAL	0
-#define TEMP_HIGH_THRESHOLD_LPM		540
-#define TEMP_HIGH_RECOVERY_LPM		470
-#define TEMP_LOW_THRESHOLD_LPM		-50
-#define TEMP_LOW_RECOVERY_LPM		0
 #else
 #define TEMP_HIGH_THRESHOLD_EVENT	700
 #define TEMP_HIGH_RECOVERY_EVENT		420
@@ -1886,8 +1836,7 @@ void board_fuelgauge_init(struct sec_fuelgauge_info *fuelgauge)
 	fuelgauge->pdata->capacity_max_margin = CAPACITY_MAX_MARGIN;
 	fuelgauge->pdata->capacity_min = CAPACITY_MIN;
 #if defined(CONFIG_SEC_VIENNA_PROJECT) || defined(CONFIG_SEC_V2_PROJECT) ||\
-	defined(CONFIG_MACH_PICASSO_LTE) || defined(CONFIG_MACH_MONDRIAN) || defined(CONFIG_MACH_LT03) ||\
-	defined(CONFIG_MACH_KLIMT)
+	defined(CONFIG_MACH_PICASSO_LTE) || defined(CONFIG_MACH_MONDRIAN) || defined(CONFIG_MACH_LT03)
 	fuelgauge->pdata->temp_adc_table = temp_table;
 	fuelgauge->pdata->temp_adc_table_size = sizeof(temp_table)/sizeof(sec_bat_adc_table_data_t);
 #endif

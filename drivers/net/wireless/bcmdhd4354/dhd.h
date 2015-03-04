@@ -24,7 +24,7 @@
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: dhd.h 479444 2014-05-21 04:19:36Z $
+ * $Id: dhd.h 473046 2014-04-26 15:09:39Z $
  */
 
 /****************
@@ -288,8 +288,6 @@ typedef struct dhd_pub {
 	bool	proptxstatus_module_ignore;
 	bool	proptxstatus_credit_ignore;
 	bool	proptxstatus_txstatus_ignore;
-
-	bool	wlfc_rxpkt_chk;
 	/*
 	 * implement below functions in each platform if needed.
 	 */
@@ -935,7 +933,6 @@ extern bool dhd_prec_drop_pkts(dhd_pub_t *dhdp, struct pktq *pq, int prec, f_dro
 #ifdef PROP_TXSTATUS
 int dhd_os_wlfc_block(dhd_pub_t *pub);
 int dhd_os_wlfc_unblock(dhd_pub_t *pub);
-extern const uint8 prio2fifo[];
 #endif /* PROP_TXSTATUS */
 
 uint8* dhd_os_prealloc(dhd_pub_t *dhdpub, int section, uint size, bool kmalloc_if_fail);

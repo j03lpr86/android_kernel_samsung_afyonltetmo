@@ -229,7 +229,7 @@ static struct msm_vidc_ctrl msm_vdec_ctrls[] = {
 		.name = "Extradata Type",
 		.type = V4L2_CTRL_TYPE_MENU,
 		.minimum = V4L2_MPEG_VIDC_EXTRADATA_NONE,
-		.maximum = V4L2_MPEG_VIDC_EXTRADATA_MPEG2_SEQDISP,
+		.maximum = V4L2_MPEG_VIDC_EXTRADATA_FRAME_BITS_INFO,
 		.default_value = V4L2_MPEG_VIDC_EXTRADATA_NONE,
 		.menu_skip_mask = ~(
 			(1 << V4L2_MPEG_VIDC_EXTRADATA_NONE) |
@@ -250,7 +250,9 @@ static struct msm_vidc_ctrl msm_vdec_ctrls[] = {
 			(1 << V4L2_MPEG_VIDC_INDEX_EXTRADATA_INPUT_CROP) |
 			(1 << V4L2_MPEG_VIDC_INDEX_EXTRADATA_DIGITAL_ZOOM) |
 			(1 << V4L2_MPEG_VIDC_INDEX_EXTRADATA_ASPECT_RATIO) |
-			(1 << V4L2_MPEG_VIDC_EXTRADATA_MPEG2_SEQDISP)
+			(1 << V4L2_MPEG_VIDC_EXTRADATA_MPEG2_SEQDISP) |
+			(1 << V4L2_MPEG_VIDC_EXTRADATA_FRAME_QP) |
+			(1 << V4L2_MPEG_VIDC_EXTRADATA_FRAME_BITS_INFO)
 			),
 		.qmenu = mpeg_video_vidc_extradata,
 		.step = 0,
@@ -698,11 +700,20 @@ int msm_vdec_g_fmt(struct msm_vidc_inst *inst, struct v4l2_format *f)
 	int rc = 0;
 	int i;
 	struct hal_buffer_requirements *buff_req_buffer;
+
 	if (!inst || !f || !inst->core || !inst->core->device) {
 		dprintk(VIDC_ERR,
 			"Invalid input, inst = %p, format = %p\n", inst, f);
 		return -EINVAL;
 	}
+
+	rc = msm_comm_try_get_bufreqs(inst);
+	if (rc) {
+		dprintk(VIDC_ERR, "Getting buffer requirements failed: %d\n",
+				rc);
+		return rc;
+	}
+
 	hdev = inst->core->device;
 	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
 		fmt = inst->fmts[CAPTURE_PORT];
@@ -1189,6 +1200,12 @@ static int msm_vdec_queue_output_buffers(struct msm_vidc_inst *inst)
 	struct vidc_frame_data frame_data = {0};
 	struct hal_buffer_requirements *output_buf, *extradata_buf;
 	int rc = 0;
+
+	if (!inst || !inst->core || !inst->core->device) {
+		dprintk(VIDC_ERR, "%s invalid parameters\n", __func__);
+		return -EINVAL;
+	}
+
 	hdev = inst->core->device;
 
 	output_buf = get_buff_req_buffer(inst, HAL_BUFFER_OUTPUT);

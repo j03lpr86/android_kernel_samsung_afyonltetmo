@@ -838,8 +838,7 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 	MIPI_OUTP((ctrl_pdata->ctrl_base) + 0xac, 0x1F << 16);
 #endif
 	wmb();
-#if defined(CONFIG_FB_MSM_MDSS_TC_DSI2LVDS_WXGA_PANEL) || \
-	defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)
+#if defined(CONFIG_FB_MSM_MDSS_TC_DSI2LVDS_WXGA_PANEL)
 	mdelay(1);
 #else
 	msleep(20);
@@ -914,8 +913,7 @@ static int mdss_dsi_unblank(struct mdss_panel_data *pdata)
 	}
 
 #if !defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQHD_PT_PANEL) && \
-	!defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQXGA_S6TNMR7_PT_PANEL) && \
-	!defined(CONFIG_FB_MSM_MIPI_MAGNA_OCTA_CMD_HD_PT_PANEL)
+	!defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQXGA_S6TNMR7_PT_PANEL)
 	if (pdata->panel_info.type == MIPI_CMD_PANEL) {
 		if (mipi->vsync_enable && mipi->hw_vsync_mode
 			&& gpio_is_valid(ctrl_pdata->disp_te_gpio)) {
@@ -949,8 +947,7 @@ static int mdss_dsi_blank(struct mdss_panel_data *pdata)
 	mdss_dsi_op_mode_config(DSI_CMD_MODE, pdata);
 
 #if !defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQHD_PT_PANEL) && \
-	!defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQXGA_S6TNMR7_PT_PANEL) && \
-	!defined(CONFIG_FB_MSM_MIPI_MAGNA_OCTA_CMD_HD_PT_PANEL)
+	!defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQXGA_S6TNMR7_PT_PANEL)
 	if (pdata->panel_info.type == MIPI_CMD_PANEL) {
 		if (mipi->vsync_enable && mipi->hw_vsync_mode
 			&& gpio_is_valid(ctrl_pdata->disp_te_gpio)) {
@@ -999,7 +996,7 @@ int mdss_dsi_cont_splash_on(struct mdss_panel_data *pdata)
 	mdss_dsi_host_init(mipi, pdata);
 	mdss_dsi_op_mode_config(mipi->mode, pdata);
 
-	if (ctrl_pdata->dsi_on_state == DSI_LP_MODE) {
+	if (ctrl_pdata->on_cmds.link_state == DSI_LP_MODE) {
 		ret = mdss_dsi_unblank(pdata);
 		if (ret) {
 			pr_err("%s: unblank failed\n", __func__);
@@ -1174,7 +1171,11 @@ static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
 		}
 		break;
 	case MDSS_EVENT_CONT_SPLASH_FINISH:
-		if (ctrl_pdata->dsi_off_state == DSI_LP_MODE)
+#if defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)
+		if (1)
+#else
+		if (ctrl_pdata->off_cmds.link_state == DSI_LP_MODE)
+#endif
                     rc = mdss_dsi_blank(pdata);
 		ctrl_pdata->ctrl_state &= ~CTRL_STATE_MDP_ACTIVE;
 			rc = mdss_dsi_cont_splash_on(pdata);
@@ -1223,8 +1224,7 @@ static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
 		&& !defined(CONFIG_FB_MSM_MIPI_JDI_TFT_VIDEO_FULL_HD_PT_PANEL)\
 		&& !defined(CONFIG_FB_MSM_MDSS_HX8394C_TFT_VIDEO_720P_PANEL)\
 		&& !defined(CONFIG_FB_MSM_MDSS_SHARP_HD_PANEL)\
-		&& !defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_VIDEO_HD_PANEL)\
-		&& !defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)
+		&& !defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_VIDEO_HD_PANEL)
 		ctrl_pdata->mdp_tg_on = 1;
 	/*Event is send only if cont_splash feature is enabled */
 		if (ctrl_pdata->dsi_off_state == DSI_HS_MODE) {
@@ -1975,7 +1975,7 @@ data = of_get_property(ctrl_pdev->dev.of_node,
 			gpio_free(ctrl_pdata->bl_on_gpio);
 		}else {
 			rc = gpio_tlmm_config(GPIO_CFG(ctrl_pdata->bl_on_gpio, 0,
-						GPIO_CFG_OUTPUT,GPIO_CFG_PULL_UP,GPIO_CFG_8MA),
+						GPIO_CFG_OUTPUT,GPIO_CFG_NO_PULL,GPIO_CFG_8MA),
 						GPIO_CFG_ENABLE);
 			if (rc)
 			pr_err("request BL ON  gpio failed, rc=%d\n",rc);
@@ -1991,7 +1991,7 @@ data = of_get_property(ctrl_pdev->dev.of_node,
 
 	}else{
 		rc = gpio_tlmm_config(GPIO_CFG(ctrl_pdata->disp_en_gpio_p, 0,
-					GPIO_CFG_OUTPUT,GPIO_CFG_PULL_UP,GPIO_CFG_8MA),
+					GPIO_CFG_OUTPUT,GPIO_CFG_NO_PULL,GPIO_CFG_8MA),
 					GPIO_CFG_ENABLE);
 		if (rc)
 		pr_err("request disp_en_gpio_p  failed, rc=%d\n",rc);
@@ -2006,7 +2006,7 @@ data = of_get_property(ctrl_pdev->dev.of_node,
 
 	}else{
 		rc = gpio_tlmm_config(GPIO_CFG(ctrl_pdata->disp_en_gpio_n, 0,
-					GPIO_CFG_OUTPUT,GPIO_CFG_PULL_UP,GPIO_CFG_8MA),
+					GPIO_CFG_OUTPUT,GPIO_CFG_NO_PULL,GPIO_CFG_8MA),
 					GPIO_CFG_ENABLE);
 		if (rc)
 		pr_err("request disp_en_gpio_n failed, rc=%d\n",rc);
@@ -2255,8 +2255,7 @@ data = of_get_property(ctrl_pdev->dev.of_node,
 		}
 
 			mdss_dsi_clk_ctrl(ctrl_pdata, 1);
-#if defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_VIDEO_FULL_HD_PT_PANEL) || \
-	defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)
+#if defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_VIDEO_FULL_HD_PT_PANEL)
 		ctrl_pdata->ctrl_state |= (CTRL_STATE_PANEL_INIT | CTRL_STATE_MDP_ACTIVE);
 #else
 		ctrl_pdata->ctrl_state |= CTRL_STATE_MDP_ACTIVE;

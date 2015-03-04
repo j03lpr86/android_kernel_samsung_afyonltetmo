@@ -132,10 +132,6 @@ struct device *switch_dev;
 EXPORT_SYMBOL(switch_dev);
 #endif
 
-#if defined(CONFIG_TOUCHSCREEN_ZINITIX_BT532)
-extern void bt532_charger_status_cb(int status);
-#endif
-
 #ifdef SYNAPTICS_RMI_INFORM_CHARGER
 struct synaptics_rmi_callbacks *charger_callbacks;
 void synaptics_tsp_charger_infom(int cable_type)
@@ -2085,6 +2081,8 @@ void tsu6721_callback(enum cable_type_t cable_type, int attached)
                 attached);
 #endif
 
+	if (cable_type == CABLE_TYPE_INCOMPATIBLE)
+		cable_type = CABLE_TYPE_AC;
 	set_cable_status = attached ? cable_type : CABLE_TYPE_NONE;
 
 	switch (cable_type) {
@@ -2268,7 +2266,7 @@ void tsu6721_callback(enum cable_type_t cable_type, int attached)
 		value.intval = POWER_SUPPLY_TYPE_USB_CDP;
 		break;
 	case CABLE_TYPE_INCOMPATIBLE:
-		value.intval = POWER_SUPPLY_TYPE_UNKNOWN;
+		value.intval = POWER_SUPPLY_TYPE_MAINS;
 		break;
 	case CABLE_TYPE_DESK_DOCK:
 		value.intval = POWER_SUPPLY_TYPE_MISC;
@@ -3480,11 +3478,6 @@ void sm5502_callback(enum cable_type_t cable_type, int attached)
 
 	set_cable_status = attached ? cable_type : CABLE_TYPE_NONE;
 
-if(!poweroff_charging){
-#if defined(CONFIG_TOUCHSCREEN_ZINITIX_BT532)
-	bt532_charger_status_cb(set_cable_status);
-#endif
-}
 	switch (cable_type) {
 	case CABLE_TYPE_USB:
 #if defined(DEBUG_STATUS)

@@ -245,7 +245,6 @@ static void sensor_power_on_vdd(struct taos_data *info, int onoff)
 		gpio_set_value(info->pdata->enable,0);
 	}
 	regulator_put(info->vdd_3p3);
-	msleep(30);
 	return ;
 #else
 	int ret;

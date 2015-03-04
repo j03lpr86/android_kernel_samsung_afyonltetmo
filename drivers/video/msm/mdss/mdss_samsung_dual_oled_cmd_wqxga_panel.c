@@ -28,7 +28,7 @@
 #include "mdss_fb.h"
 
 #if defined(CONFIG_MDNIE_LITE_TUNING)
-#include "mdnie_lite_tuning_chagall.h"
+#include "mdnie_lite_tuning.h"
 #endif
 
 //#define DDI_VIDEO_ENHANCE_TUNING
@@ -403,15 +403,29 @@ static int get_cmd_idx(int bl_level)
 static struct dsi_cmd get_aid_aor_control_set(int cd_idx)
 {
 	struct dsi_cmd aid_control = {0,};
-	int cmd_idx = 0;
+	int cmd_idx = 0, payload_size = 0;
+	char *p_payload, *c_payload;
+	int p_idx = msd.dstat.curr_aid_idx;
 
 	if (!aid_map_table.size || !(cd_idx < aid_map_table.size))
 		goto end;
 	/* Get index in the aid command list*/
 	cmd_idx = aid_map_table.cmd_idx[cd_idx];
+	c_payload = aid_cmds_list.cmd_desc[cmd_idx].payload;
+
+
+	/* Check if current & previous commands are same */
+	if (p_idx >= 0) {
+		p_payload = aid_cmds_list.cmd_desc[p_idx].payload;
+		payload_size = aid_cmds_list.cmd_desc[p_idx].dchdr.dlen;
+
+		if (!memcmp(p_payload, c_payload, payload_size))
+			goto end;
+	}
 
 	/* Get the command desc */
 	aid_control.cmd_desc = &(aid_cmds_list.cmd_desc[cmd_idx]);
+
 
 	aid_control.num_of_cmds = 1;
 	msd.dstat.curr_aid_idx = cmd_idx;
@@ -2572,9 +2586,6 @@ static ssize_t mipi_samsung_auto_brightness_store(struct device *dev,
 
 	if (msd.mfd->resume_state == MIPI_RESUME_STATE) {
 		mipi_samsung_disp_send_cmd(PANEL_BRIGHT_CTRL, true);
-#if defined(CONFIG_MDNIE_LITE_TUNING)
-		mDNIe_Set_Mode(); // LOCAL CE tuning
-#endif
 		pr_info("%s %d %d\n", __func__, msd.dstat.auto_brightness, msd.dstat.bright_level);
 	} else {
 		pr_info("%s : panel is off state!!\n", __func__);

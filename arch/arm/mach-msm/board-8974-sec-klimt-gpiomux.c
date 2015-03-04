@@ -285,7 +285,7 @@ static struct gpiomux_setting gpio_epm_marker_config = {
 	.pull = GPIOMUX_PULL_NONE,
 	.dir = GPIOMUX_OUT_HIGH,
 };
-#if 0
+
 static struct gpiomux_setting wcnss_5wire_suspend_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv  = GPIOMUX_DRV_2MA,
@@ -297,7 +297,7 @@ static struct gpiomux_setting wcnss_5wire_active_cfg = {
 	.drv  = GPIOMUX_DRV_6MA,
 	.pull = GPIOMUX_PULL_DOWN,
 };
-#endif
+
 static struct gpiomux_setting ath_gpio_active_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_2MA,
@@ -651,7 +651,7 @@ static struct msm_gpiomux_config msm_motor_configs[] __initdata = {
 	},
 };
 
-#if !defined(CONFIG_BT_BCM4335) && !defined(CONFIG_BT_BCM4339)  && !defined(CONFIG_BT_BCM4354)
+#if !defined(CONFIG_BT_BCM4335) && !defined(CONFIG_BT_BCM4339)
 static struct gpiomux_setting gpio_uart7_active_cfg = {
 	.func = GPIOMUX_FUNC_3,
 	.drv = GPIOMUX_DRV_8MA,
@@ -1386,7 +1386,7 @@ static struct msm_gpiomux_config msm8974_sec_auxpcm_configs[] __initdata = {
 	},
 };
 #endif
-#if 0
+
 static struct msm_gpiomux_config wcnss_5wire_interface[] = {
 	{
 		.gpio = 36,
@@ -1424,7 +1424,7 @@ static struct msm_gpiomux_config wcnss_5wire_interface[] = {
 		},
 	},
 };
-#endif
+
 static struct msm_gpiomux_config ath_gpio_configs[] = {
 	{
 		.gpio = 79,
@@ -1686,7 +1686,7 @@ static void msm_gpiomux_sdc4_install(void)
 static void msm_gpiomux_sdc4_install(void) {}
 #endif /* CONFIG_MMC_MSM_SDC4_SUPPORT */
 
-#if defined(CONFIG_BT_BCM4335) || defined(CONFIG_BT_BCM4339) || defined(CONFIG_BT_BCM4354)
+#if defined(CONFIG_BT_BCM4335) || defined(CONFIG_BT_BCM4339)
 static struct msm_gpiomux_config msm8974_btuart_configs[] __initdata = {
 	{
 		/* TXD */
@@ -1764,11 +1764,11 @@ void __init msm_8974_init_gpiomux(void)
 #endif
 	msm_gpiomux_install(msm_blsp_configs, ARRAY_SIZE(msm_blsp_configs));
 
-#if !defined(CONFIG_BT_BCM4335) && !defined(CONFIG_BT_BCM4339)  && !defined(CONFIG_BT_BCM4354)
+#if !defined(CONFIG_BT_BCM4335) && !defined(CONFIG_BT_BCM4339)
 	msm_gpiomux_install(msm_blsp2_uart7_configs,
 			 ARRAY_SIZE(msm_blsp2_uart7_configs));
 #endif
-#if defined(CONFIG_BT_BCM4335) || defined(CONFIG_BT_BCM4339) || defined(CONFIG_BT_BCM4354)
+#if defined(CONFIG_BT_BCM4335) || defined(CONFIG_BT_BCM4339)
 	msm_gpiomux_btuart_install();
 #endif
 
@@ -1817,10 +1817,9 @@ void __init msm_8974_init_gpiomux(void)
 #endif
 	msm_gpiomux_install(msm_fpga_configs, ARRAY_SIZE(msm_fpga_configs));
 	msm_gpiomux_install(msm_motor_configs, ARRAY_SIZE(msm_motor_configs));
-#if 0
 	msm_gpiomux_install(wcnss_5wire_interface,
 				ARRAY_SIZE(wcnss_5wire_interface));
-#endif
+
 	if (of_board_is_liquid() ||
 	    (of_board_is_dragonboard() && machine_is_apq8074()))
 		msm_gpiomux_install(msm8974_pri_ter_auxpcm_configs,
@@ -1842,7 +1841,7 @@ void __init msm_8974_init_gpiomux(void)
 	msm_gpiomux_install_nowrite(msm_lcd_configs,
 			ARRAY_SIZE(msm_lcd_configs));
 
-#if !defined(CONFIG_BT_BCM4335) && !defined(CONFIG_BT_BCM4339)  && !defined(CONFIG_BT_BCM4354)
+#if !defined(CONFIG_BT_BCM4335) && !defined(CONFIG_BT_BCM4339)
 	if (of_board_is_rumi())
 		msm_gpiomux_install(msm_rumi_blsp_configs,
 				    ARRAY_SIZE(msm_rumi_blsp_configs));

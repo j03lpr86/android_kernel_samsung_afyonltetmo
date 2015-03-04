@@ -46,8 +46,14 @@ struct msm_camera_spi_client {
 	struct msm_camera_spi_inst_tbl cmd_tbl;
 	uint8_t device_id0;
 	uint8_t device_id1;
+	uint8_t device_id2;
+#if defined(CONFIG_MACH_CRATERVE_CHN_CTC)
+	uint8_t device_id3;
+	uint8_t mfr_id3;
+#endif
 	uint8_t mfr_id0;
 	uint8_t mfr_id1;
+	uint8_t mfr_id2;
 	uint8_t retry_delay;	/* ms */
 	uint8_t retries;	/* retry times upon failure */
 	uint8_t busy_mask;	/* busy bit in status reg */

@@ -89,7 +89,7 @@ struct factory_cmd factory_cmds[] = {
 	{FACTORY_CMD("run_difference_read", run_difference_read),},
 	{FACTORY_CMD("get_difference", get_difference),},
 	{FACTORY_CMD("get_difference_btn", get_difference_btn),},
-	{FACTORY_CMD("run_local_idac_read", run_idac_read),},
+	{FACTORY_CMD("run_idac_read", run_idac_read),},
 	{FACTORY_CMD("get_global_idac", get_global_idac),},
 	{FACTORY_CMD("get_local_idac", get_local_idac),},
 	{FACTORY_CMD("get_global_idac_btn", get_global_idac_btn),},

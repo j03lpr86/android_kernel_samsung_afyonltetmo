@@ -539,7 +539,7 @@ static int msm_sec_dha_put(struct snd_kcontrol *kcontrol,
 
 	int dha_mode = ucontrol->value.integer.value[0];
 	int dha_select = ucontrol->value.integer.value[1];
-#if defined(CONFIG_AUDIO_DUAL_CP) || defined(CONFIG_MACH_KLTE_CTC) || defined(CONFIG_MACH_KLTE_CMCCDUOS) || defined(CONFIG_MACH_KLTE_CUDUOS) || defined(CONFIG_MACH_MEGA23GEUR_OPEN)
+#if defined(CONFIG_AUDIO_DUAL_CP) || defined(CONFIG_MACH_KLTE_CTC) || defined(CONFIG_MACH_KLTE_CMCCDUOS) || defined(CONFIG_MACH_KLTE_CUDUOS) || defined(CONFIG_MACH_MEGA23GEUR_OPEN) || defined(CONFIG_MACH_MS01_EUR_3G) || defined(CONFIG_MACH_MS01_EUR_LTE)
 	uint32_t session_id = ucontrol->value.integer.value[14];
 #endif
 	short dha_param[12] = {0,};
@@ -548,7 +548,7 @@ static int msm_sec_dha_put(struct snd_kcontrol *kcontrol,
 		pr_debug("msm_dha_put : param - %d\n", dha_param[i]);
 	}
 
-#if defined(CONFIG_AUDIO_DUAL_CP) || defined(CONFIG_MACH_KLTE_CTC) || defined(CONFIG_MACH_KLTE_CMCCDUOS) || defined(CONFIG_MACH_KLTE_CUDUOS) || defined(CONFIG_MACH_MEGA23GEUR_OPEN) || defined(CONFIG_MACH_MS01_EUR_3G)
+#if defined(CONFIG_AUDIO_DUAL_CP) || defined(CONFIG_MACH_KLTE_CTC) || defined(CONFIG_MACH_KLTE_CMCCDUOS) || defined(CONFIG_MACH_KLTE_CUDUOS) || defined(CONFIG_MACH_MEGA23GEUR_OPEN) || defined(CONFIG_MACH_MS01_EUR_3G) || defined(CONFIG_MACH_MS01_EUR_LTE)
 	pr_info("%s: session_id=%#x\n", __func__, session_id);
 	return voice_sec_set_dha_data(session_id,
 		dha_mode, dha_select, dha_param);
@@ -580,7 +580,7 @@ static struct snd_kcontrol_new msm_voice_controls[] = {
 	SOC_SINGLE_MULTI_EXT("Slowtalk Enable", SND_SOC_NOPM, 0, VSID_MAX, 0, 2,
 				msm_voice_slowtalk_get, msm_voice_slowtalk_put),
 #ifdef CONFIG_SEC_DHA_SOL_MAL
-#if defined(CONFIG_AUDIO_DUAL_CP) || defined(CONFIG_MACH_KLTE_CTC) || defined(CONFIG_MACH_KLTE_CMCCDUOS) || defined(CONFIG_MACH_KLTE_CUDUOS) || defined(CONFIG_MACH_MEGA23GEUR_OPEN) || defined(CONFIG_MACH_MS01_EUR_3G)
+#if defined(CONFIG_AUDIO_DUAL_CP) || defined(CONFIG_MACH_KLTE_CTC) || defined(CONFIG_MACH_KLTE_CMCCDUOS) || defined(CONFIG_MACH_KLTE_CUDUOS) || defined(CONFIG_MACH_MEGA23GEUR_OPEN) || defined(CONFIG_MACH_MS01_EUR_3G) || defined(CONFIG_MACH_MS01_EUR_LTE)
 	SOC_SINGLE_MULTI_EXT("Sec Set DHA data", SND_SOC_NOPM, 0, VSID_MAX, 0, 15,
 				msm_sec_dha_get, msm_sec_dha_put),
 #else

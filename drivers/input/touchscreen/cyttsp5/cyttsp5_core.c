@@ -5629,10 +5629,6 @@ int cyttsp5_probe(const struct cyttsp5_bus_ops *ops, struct device *dev,
 		dev_err(dev, "FPGA configuration %s. CDONE : %d\n", rc ? "succeeded":"failed", rc);
 		if (rc)
 			break;
-		retry--;
-	}
-	if(retry == 0){
-		dev_err(dev, "failed to configurate FPGA\n");
 	}
 	/* GPIO setting for TSP I2C communication */
 	fpga_enable(cd, 1);

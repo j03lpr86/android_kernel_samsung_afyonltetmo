@@ -166,10 +166,9 @@ static int brcm_init_wlan_mem(void)
 #endif /* CONFIG_BROADCOM_WIFI_RESERVED_MEM */
 
 /* MSM8974 WLAN_EN GPIO Number */
-#if defined(CONFIG_SEC_K_PROJECT) || defined(CONFIG_SEC_KACTIVE_PROJECT) || defined(CONFIG_SEC_KSPORTS_PROJECT)
+#if defined(CONFIG_SEC_K_PROJECT) || defined(CONFIG_SEC_KACTIVE_PROJECT) || defined(CONFIG_SEC_KSPORTS_PROJECT) ||\
+	defined(CONFIG_SEC_PATEK_PROJECT)
 #define GPIO_WL_REG_ON 308
-#elif defined(CONFIG_SEC_PATEK_PROJECT)
-#define GPIO_WL_REG_ON 26
 #elif defined(CONFIG_SEC_S_PROJECT)
 #define GPIO_WL_REG_ON 85
 #elif defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_VIENNA_PROJECT) || defined(CONFIG_SEC_LT03_PROJECT) ||\

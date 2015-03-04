@@ -27,6 +27,19 @@
 #define I2C_COMPARE_MISMATCH 1
 #define I2C_POLL_MAX_ITERATION 20
 
+#if defined(CONFIG_MACH_CRATERQ_CHN_OPEN) || \
+    defined (CONFIG_SEC_MILLET_PROJECT) || \
+    defined(CONFIG_SEC_MATISSE_PROJECT) || \
+    defined(CONFIG_SEC_DEGAS_PROJECT) || \
+    defined (CONFIG_SEC_T8_PROJECT) || \
+    defined (CONFIG_SEC_T10_PROJECT)
+#define BYTE_ADDR_DATA
+#elif defined(CONFIG_MACH_AFYONLTE_TMO) || \
+     defined (CONFIG_MACH_AFYONLTE_CAN) || \
+     defined (CONFIG_MACH_AFYONLTE_MTR)
+#define WORD_ADDR_DATA
+#endif
+
 int32_t msm_camera_cci_i2c_read(struct msm_camera_i2c_client *client,
 	uint32_t addr, uint16_t *data,
 	enum msm_camera_i2c_data_type data_type)
@@ -120,6 +133,30 @@ int32_t msm_camera_cci_i2c_write(struct msm_camera_i2c_client *client,
 
 	CDBG("%s:%d reg addr = 0x%x data type: %d\n",
 		__func__, __LINE__, addr, data_type);
+#if defined(BYTE_ADDR_DATA)
+/* As per kernel documentation its advisable to use usleep_range for 10us - 20ms*/
+	if (addr == 0xff){
+            if(data>2){
+                msleep(data * 10);
+            }else if(data){
+                usleep_range(data*10000, data*10000+1000);
+            }
+            pr_debug("delay = %d\n", (int)data*10);
+            return 0;
+	}
+#elif defined(WORD_ADDR_DATA)
+	if (addr == 0xffff){
+		msleep(data);
+		pr_err("delay = %d\n", (int)data);
+		rc = 0;
+		return rc;
+	} else if (addr == 0xff){
+		msleep(data*10);
+		pr_err("delay = %d\n", (int)data*10);
+		rc = 0;
+		return rc;
+	}
+#endif
 	cci_ctrl.status = 0;//prevent
 	memset(&reg_conf_tbl, 0, sizeof(reg_conf_tbl));
 	reg_conf_tbl.reg_addr = addr;
@@ -130,11 +167,14 @@ int32_t msm_camera_cci_i2c_write(struct msm_camera_i2c_client *client,
 	cci_ctrl.cfg.cci_i2c_write_cfg.data_type = data_type;
 	cci_ctrl.cfg.cci_i2c_write_cfg.addr_type = client->addr_type;
 	cci_ctrl.cfg.cci_i2c_write_cfg.size = 1;
+
 	rc = v4l2_subdev_call(client->cci_client->cci_subdev,
 			core, ioctl, VIDIOC_MSM_CCI_CFG, &cci_ctrl);
 	if (rc < 0) {
 		pr_err("%s: line %d rc = %d\n", __func__, __LINE__, rc);
+		return rc;
 	}
+	rc = cci_ctrl.status;
 	rc = 0;
 	return rc;
 }
@@ -161,17 +201,17 @@ int32_t msm_camera_cci_i2c_write_seq(struct msm_camera_i2c_client *client,
 		reg_conf_tbl[i].reg_data = data[i];
 		reg_conf_tbl[i].delay = 0;
 	}
-	cci_ctrl.cmd = MSM_CCI_I2C_WRITE;
+	cci_ctrl.status = 0;
 	cci_ctrl.cci_info = client->cci_client;
+	cci_ctrl.cmd = MSM_CCI_I2C_WRITE;
 	cci_ctrl.cfg.cci_i2c_write_cfg.reg_setting = reg_conf_tbl;
 	cci_ctrl.cfg.cci_i2c_write_cfg.data_type = MSM_CAMERA_I2C_BYTE_DATA;
 	cci_ctrl.cfg.cci_i2c_write_cfg.addr_type = client->addr_type;
 	cci_ctrl.cfg.cci_i2c_write_cfg.size = num_byte;
 	rc = v4l2_subdev_call(client->cci_client->cci_subdev,
 			core, ioctl, VIDIOC_MSM_CCI_CFG, &cci_ctrl);
-	if (rc < 0) {
-		pr_err("%s: line %d rc = %d\n", __func__, __LINE__, rc);
-	}
+	CDBG("%s line %d rc = %d\n", __func__, __LINE__, rc);
+	rc = cci_ctrl.status;
 	rc = 0;
 	return rc;
 }
@@ -281,7 +321,9 @@ int32_t msm_camera_cci_i2c_write_table(
 				core, ioctl, VIDIOC_MSM_CCI_CFG, &cci_ctrl);
 		if (rc < 0) {
 			pr_err("%s: line %d rc = %d\n", __func__, __LINE__, rc);
+				return rc;
 		}
+		rc = cci_ctrl.status;
 		rc = 0;
 		if (write_setting->delay > 20)
 			msleep(write_setting->delay);
@@ -359,7 +401,9 @@ int32_t msm_camera_cci_i2c_write_table_w_microdelay(
 			core, ioctl, VIDIOC_MSM_CCI_CFG, &cci_ctrl);
 	if (rc < 0) {
 		pr_err("%s: line %d rc = %d\n", __func__, __LINE__, rc);
+			return rc;
 	}
+	rc = cci_ctrl.status;
 	rc = 0;
 	return rc;
 }

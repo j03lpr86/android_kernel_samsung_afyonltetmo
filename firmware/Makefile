@@ -160,7 +160,6 @@ fw-shipped-$(CONFIG_TOUCHSCREEN_MMS134S) += tsp_melfas/kanas_mms134s_new.fw
 fw-shipped-$(CONFIG_TOUCHSCREEN_MMS300) += tsp_melfas/hestia_mms300.fw
 fw-shipped-$(CONFIG_TOUCHSCREEN_MMS136) += tsp_melfas/victor/victor.fw
 
-fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI_G)    += tsp_synaptics/synaptics_s5100_hestia.fw
 fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI_G)    += tsp_synaptics/synaptics_s5100_k_a2_fhd.fw
 fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI_G)    += tsp_synaptics/synaptics_s5100_k_a3.fw
 fw-shipped-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI_G)    += tsp_synaptics/synaptics_s5100_k_active.fw
@@ -191,8 +190,7 @@ else
 fw-shipped-$(CONFIG_TOUCHSCREEN_ATMEL_MXT1188S) += tsp_atmel/mXT1188S.fw
 endif
 
-fw-shipped-$(CONFIG_TOUCHSCREEN_FTS) += tsp_stm/stm.fw tsp_stm/stm_de.fw tsp_stm/stm_sync.fw tsp_stm/stm_tn10.fw
-fw-shipped-$(CONFIG_TOUCHSCREEN_FTS_S) += tsp_stm/stm_s.fw
+fw-shipped-$(CONFIG_TOUCHSCREEN_FTS) += tsp_stm/stm.fw tsp_stm/stm_de.fw tsp_stm/stm_sync.fw tsp_stm/stm_tn10.fw tsp_stm/stm_s.fw
 
 fw-shipped-$(CONFIG_KEYBOARD_CYPRESS_TOUCHKEY_H) += tkey/hlte_cypress_tkey.fw
 fw-shipped-$(CONFIG_KEYBOARD_CYPRESS_TOUCHKEY_C) += tkey/berluti_cypress_tkey.fw
@@ -218,7 +216,6 @@ ifndef CONFIG_SENSORS_SSP_BOUNCE_FIRMWARE
 fw-shipped-$(CONFIG_SENSORS_SSP_STM) += ssp_stm.fw ssp_stm_rvs.fw ssp_stm_88921.fw ssp_stm_w2014.fw
 fw-shipped-$(CONFIG_SENSORS_SSP_STM_32F) += ssp_stm32f.fw
 fw-shipped-$(CONFIG_SEC_KSPORTS_PROJECT) += ssp_stm_tasman.fw
-fw-shipped-$(CONFIG_SENSORS_SSP_STM_HESTIA) += ssp_stm_hestia.fw
 endif
 fw-shipped-$(CONFIG_SENSORS_SSP_BOUNCE_FIRMWARE) += ssp_stm_bf.fw
 fw-shipped-$(CONFIG_SENSORS_SSP) += ssp_crashed.fw

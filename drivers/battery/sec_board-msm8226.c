@@ -317,19 +317,6 @@ static struct sec_fuelgauge_info *sec_fuelgauge =  NULL;
 #define TEMP_HIGH_RECOVERY_LPM     460
 #define TEMP_LOW_THRESHOLD_LPM     (-50)
 #define TEMP_LOW_RECOVERY_LPM      0
-#elif defined(CONFIG_SEC_MEGA2_PROJECT)
-#define TEMP_HIGH_THRESHOLD_EVENT  600
-#define TEMP_HIGH_RECOVERY_EVENT   460
-#define TEMP_LOW_THRESHOLD_EVENT   (-50)
-#define TEMP_LOW_RECOVERY_EVENT    0
-#define TEMP_HIGH_THRESHOLD_NORMAL 600
-#define TEMP_HIGH_RECOVERY_NORMAL  460
-#define TEMP_LOW_THRESHOLD_NORMAL  (-50)
-#define TEMP_LOW_RECOVERY_NORMAL   0
-#define TEMP_HIGH_THRESHOLD_LPM    600
-#define TEMP_HIGH_RECOVERY_LPM     460
-#define TEMP_LOW_THRESHOLD_LPM     (-50)
-#define TEMP_LOW_RECOVERY_LPM      0
 #else
 #define TEMP_HIGH_THRESHOLD_EVENT  520
 #define TEMP_HIGH_RECOVERY_EVENT   460
@@ -695,58 +682,32 @@ static sec_bat_adc_table_data_t temp_table[] = {
 };
 #elif defined(CONFIG_SEC_ATLANTIC3G_COMMON)
 static sec_bat_adc_table_data_t temp_table[] = {
-  {26050, 920},
-  {26273, 870},
-  {26524, 820},
-  {26847, 770},
-  {27037, 720},
-  {27456, 670},
-  {27823, 620},
-  {28400, 570},
-  {28890, 540},
-  {28976, 520},
-  {29417, 490},
-  {29704, 470},
-  {30519, 420},
-  {31368, 370},
-  {32492, 320},
-  {33460, 270},
-  {34895, 220},
-  {35670, 170},
-  {36752, 120},
-  {37724, 70},
-  {38645, 2},
-  {39005, 0},
-  {39490, -30},
-  {40696, -80},
-  {41294, -130},
-  {41828, -180},
-};
-#elif defined(CONFIG_SEC_MEGA2_PROJECT)
-static sec_bat_adc_table_data_t temp_table[] = {
-  {25950, 900},
-  {26173, 850},
-  {26424, 800},
-  {26727, 750},
-  {27100, 700},
-  {27625, 650},
-  {28162, 600},
-  {28705, 550},
-  {29386, 500},
-  {30071, 450},
-  {30981, 400},
-  {32025, 350},
-  {33068, 300},
-  {34106, 250},
-  {35144, 200},
-  {36227, 150},
-  {37310, 100},
-  {38273, 50},
-  {39237, 0},
-  {40041, -50},
-  {40690, -100},
-  {41420, -150},
-  {42000, -200},
+  {26050, 910},
+  {26273, 860},
+  {26524, 810},
+  {26847, 760},
+  {27037, 710},
+  {27456, 660},
+  {27823, 610},
+  {28400, 560},
+  {28890, 530},
+  {28976, 510},
+  {29417, 480},
+  {29704, 460},
+  {30519, 410},
+  {31368, 360},
+  {32492, 310},
+  {33460, 260},
+  {34895, 210},
+  {35670, 160},
+  {36752, 110},
+  {37724, 60},
+  {38645, 1},
+  {39005, -10},
+  {39490, -40},
+  {40696, -90},
+  {41294, -140},
+  {41828, -190},
 };
 #else
 static sec_bat_adc_table_data_t temp_table[] = {

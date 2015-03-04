@@ -166,7 +166,7 @@ static const struct qpnp_vadc_map_pt adcmap_btm_threshold[] = {
 	{820,	171	},
 	{850,	151	},
 };
-#elif (defined(CONFIG_MACH_MS01_EUR_3G))
+#elif (defined(CONFIG_MACH_MS01_EUR_3G) || defined(CONFIG_MACH_MS01_EUR_LTE))
  /* SAMSUNG temperature table for MS01 EUR 3G */
 static const struct qpnp_vadc_map_pt adcmap_btm_threshold[] = {
 	{-350,	1731},

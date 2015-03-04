@@ -198,17 +198,9 @@ int cyttsp4_init(struct cyttsp4_core_platform_data *pdata,
 	int irq_gpio = pdata->irq_gpio;	
 	
 		if (on) {
-		rc = gpio_request(irq_gpio, "TSP_INT");
-		if(rc < 0){
-			pr_err("%s: unable to request TSP_INT\n", __func__);
-			return rc;
-		}
+		gpio_request(irq_gpio, "TSP_INT");
 		gpio_direction_input(irq_gpio);
-		rc = gpio_request(avdd_gpio, "TSP_AVDD_gpio");
-		if(rc < 0){
-			pr_err("%s: unable to request TSP_AVDD_gpio\n", __func__);
-			return rc;
-		}
+		gpio_request(avdd_gpio, "TSP_AVDD_gpio");
 		#if defined(CONFIG_MACH_AFYONLTE_TMO) || defined(CONFIG_MACH_AFYONLTE_CAN) || (CONFIG_MACH_AFYONLTE_MTR)
 		if(system_rev > 1){
 			gpio_tlmm_config(GPIO_CFG(CYTTSP4_I2C_IRQ_GPIO, 0,

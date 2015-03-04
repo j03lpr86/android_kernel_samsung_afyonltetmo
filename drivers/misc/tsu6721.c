@@ -1066,6 +1066,7 @@ static void tsu6721_init_detect(struct work_struct *work)
 			struct tsu6721_usbsw, init_work.work);
 	int ret;
 	int int_reg1, int_reg2;
+	int val1, val3, adc;
 
 	dev_info(&usbsw->client->dev, "%s\n", __func__);
 
@@ -1085,6 +1086,21 @@ static void tsu6721_init_detect(struct work_struct *work)
 	int_reg2 = i2c_smbus_read_byte_data(usbsw->client, REG_INT2);
 	dev_info(&usbsw->client->dev, "%s: intr2 : 0x%x\n",
 		__func__, int_reg2);
+
+	/* device detection */
+	/* interrupt detach */
+	adc = i2c_smbus_read_byte_data(usbsw->client, REG_ADC);
+	if (int_reg1 == (INT_ATTACH)) {
+		val1 = i2c_smbus_read_byte_data(usbsw->client, REG_DEVICE_TYPE1);
+		val3 = i2c_smbus_read_byte_data(usbsw->client, REG_DEVICE_TYPE3);
+		if ((adc == ADC_OPEN) && (val1 == DATA_NONE) &&
+				((val3 == DATA_NONE) ||
+				 (val3 == (DEV_VBUS_DEBOUNCE | DEV_NON_STANDARD)))){
+					dev_info(&usbsw->client->dev, "%s: val1 : 0x%x val3 : 0x%x\n",
+		__func__, val1, val3);
+			tsu6721_detach_dev(usbsw);
+		}
+    }
 }
 
 #ifdef CONFIG_OF

@@ -51,7 +51,6 @@ static struct dsi_host_v2_private *dsi_host_private;
 static int msm_dsi_clk_ctrl(struct mdss_panel_data *pdata, int enable);
 
 #if defined(CONFIG_FB_MSM_MDSS_DSI_DBG)
-extern int dsi_ctrl_on;
 extern unsigned char *dsi_ctrl_base;
 extern void dumpreg(void);
 extern void mdp3_dump_clk(void);
@@ -1165,9 +1164,6 @@ static int msm_dsi_on(struct mdss_panel_data *pdata)
 	msm_dsi_set_irq(ctrl_pdata, DSI_INTR_ERROR_MASK);
 	dsi_host_private->clk_count = 1;
 	dsi_host_private->dsi_on = 1;
-#if defined(CONFIG_FB_MSM_MDSS_DSI_DBG)
-	dsi_ctrl_on = dsi_host_private->dsi_on;
-#endif
 	mutex_unlock(&ctrl_pdata->mutex);
 
 	return ret;
@@ -1205,9 +1201,6 @@ static int msm_dsi_off(struct mdss_panel_data *pdata)
 	}
 	dsi_host_private->clk_count = 0;
 	dsi_host_private->dsi_on = 0;
-#if defined(CONFIG_FB_MSM_MDSS_DSI_DBG)
-	dsi_ctrl_on = dsi_host_private->dsi_on;
-#endif
 
 	mutex_unlock(&ctrl_pdata->mutex);
 
@@ -1249,9 +1242,6 @@ static int msm_dsi_cont_on(struct mdss_panel_data *pdata)
 	msm_dsi_set_irq(ctrl_pdata, DSI_INTR_ERROR_MASK);
 	dsi_host_private->clk_count = 1;
 	dsi_host_private->dsi_on = 1;
-#if defined(CONFIG_FB_MSM_MDSS_DSI_DBG)
-	dsi_ctrl_on = dsi_host_private->dsi_on;
-#endif
 	mutex_unlock(&ctrl_pdata->mutex);
 	return 0;
 }
@@ -1526,7 +1516,6 @@ static int __devinit msm_dsi_probe(struct platform_device *pdev)
 		}
 #if defined(CONFIG_FB_MSM_MDSS_DSI_DBG)
 		dsi_ctrl_base = dsi_host_private->dsi_base;
-		dsi_ctrl_on = dsi_host_private->dsi_on;
 #endif
 	}
 

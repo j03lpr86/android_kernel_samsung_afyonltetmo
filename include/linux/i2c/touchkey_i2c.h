@@ -242,7 +242,6 @@ struct cypress_touchkey_platform_data {
 	int gpio_touchkey_id;
 	u32	gpio_touchkey_id_flags;
 	int vdd_led;
-	int vcc_en;
 };
 
 struct cypress_touchkey_info {

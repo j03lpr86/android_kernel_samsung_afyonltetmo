@@ -1216,34 +1216,10 @@ static ssize_t usb_sel_show_attrs(struct device *dev,
 	return sprintf(buf, "PDA");
 }
 
-#if defined(CONFIG_USB_HOST_NOTIFY)
-static ssize_t rt8973_muic_set_otg_test(struct device *dev,
-					  struct device_attribute *attr,
-					  const char *buf, size_t count)
-{
-
-	pr_info("%s: buf:%s\n",  __func__, buf);
-
-	if (!strncmp(buf, "0", 1)) {
-		sec_otg_notify(HNOTIFY_OTG_POWER_ON);
-	} else if (!strncmp(buf, "1", 1)) {
-		sec_otg_notify(HNOTIFY_OTG_POWER_OFF);
-	} else {
-		pr_warn("%s: Wrong command\n", __func__);
-		return count;
-	}
-
-	return count;
-}
-#endif
-
 static DEVICE_ATTR(adc, S_IRUGO | S_IWUSR | S_IWGRP | S_IXOTH /*0665 */ ,
 		   adc_show, NULL);
 static DEVICE_ATTR(usb_state, S_IRUGO, usb_state_show_attrs, NULL);
 static DEVICE_ATTR(usb_sel, S_IRUGO, usb_sel_show_attrs, NULL);
-#if defined(CONFIG_USB_HOST_NOTIFY)
-static DEVICE_ATTR(otg_test, 0664, NULL, rt8973_muic_set_otg_test);
-#endif
 
 /*
 static int sec_get_usb_vbus(unsigned int *level)
@@ -1389,11 +1365,7 @@ static int __devinit rt8973_probe(struct i2c_client *client,
 	if (device_create_file(switch_dev, &dev_attr_usb_sel) < 0)
 		pr_err("RT8973 : Failed to create device file(%s)!\n",
 		       dev_attr_usb_sel.attr.name);
-#if defined(CONFIG_USB_HOST_NOTIFY)
-	if (device_create_file(switch_dev, &dev_attr_otg_test) < 0)
-		pr_err("RT8973 : Failed to create device file(%s)!\n",
-		       dev_attr_otg_test.attr.name);
-#endif
+
 #if defined(CONFIG_RT8973_JIG_WAKEUP)
 	pr_info("RT8973 : client->irq %d\n",client->irq);
 	enable_irq_wake(client->irq);

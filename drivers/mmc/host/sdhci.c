@@ -1180,7 +1180,7 @@ static void sdhci_finish_data(struct sdhci_host *host)
 		tasklet_schedule(&host->finish_tasklet);
 }
 
-#define SDHCI_REQUEST_TIMEOUT	20 /* Default request timeout in seconds */
+#define SDHCI_REQUEST_TIMEOUT	10 /* Default request timeout in seconds */
 
 static void sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 {

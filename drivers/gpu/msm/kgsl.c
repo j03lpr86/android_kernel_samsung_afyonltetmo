@@ -2678,8 +2678,7 @@ static long kgsl_ioctl_map_user_mem(struct kgsl_device_private *dev_priv,
 	param->flags &= KGSL_MEMFLAGS_GPUREADONLY
 			| KGSL_MEMTYPE_MASK
 			| KGSL_MEMALIGN_MASK
-			| KGSL_MEMFLAGS_USE_CPU_MAP
-			| KGSL_CACHEMODE_MASK;
+			| KGSL_MEMFLAGS_USE_CPU_MAP;
 
 	entry->memdesc.flags = param->flags;
 	if (!kgsl_mmu_use_cpu_map(private->pagetable->mmu))

@@ -743,7 +743,7 @@ struct sec_therm_platform_data sec_therm_pdata = {
 	defined(CONFIG_SEC_AFYON_PROJECT) || defined(CONFIG_SEC_VICTOR_PROJECT) || defined(CONFIG_SEC_BERLUTI_PROJECT) || \
 	defined(CONFIG_SEC_GNOTE_PROJECT) || defined(CONFIG_SEC_ATLANTIC_PROJECT) || defined(CONFIG_SEC_DEGAS_PROJECT) || \
 	defined(CONFIG_SEC_T10_PROJECT) || defined(CONFIG_SEC_T8_PROJECT) || defined(CONFIG_SEC_MEGA2_PROJECT) || defined(CONFIG_MACH_VICTOR3GDSDTV_LTN) || \
-	defined(CONFIG_MACH_MS01_EUR_3G)
+	defined(CONFIG_MACH_MS01_EUR_3G) || defined(CONFIG_MACH_MS01_EUR_LTE)
 struct platform_device sec_device_thermistor = {
 	.name = "sec-thermistor",
 	.id = -1,

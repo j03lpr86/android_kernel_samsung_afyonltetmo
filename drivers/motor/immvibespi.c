@@ -170,9 +170,6 @@ static int32_t ImmVibeSPI_ForceOut_AmpDisable(u_int8_t nActuatorIndex)
 		max77804k_vibtonz_en(0);
 #elif defined(CONFIG_MOTOR_DRV_MAX77828)
 		max77828_vibtonz_en(0);
-#elif defined(CONFIG_MOTOR_DRV_MAX77888)
-		max77888_gpio_en(0);
-		max77888_vibtonz_en(0);
 #elif defined(CONFIG_MOTOR_DRV_DRV2603)
 		drv2603_gpio_en(0);
 #endif
@@ -224,9 +221,6 @@ static int32_t ImmVibeSPI_ForceOut_AmpEnable(u_int8_t nActuatorIndex)
 		max77804k_vibtonz_en(1);
 #elif defined(CONFIG_MOTOR_DRV_MAX77828)
                 max77828_vibtonz_en(1);
-#elif defined(CONFIG_MOTOR_DRV_MAX77888)
-		max77888_gpio_en(1);
-		max77888_vibtonz_en(1);
 #elif defined(CONFIG_MOTOR_DRV_DRV2603)
 		drv2603_gpio_en(1);
 #endif
@@ -282,9 +276,6 @@ static int32_t ImmVibeSPI_ForceOut_Initialize(void)
 		}
 #if defined(CONFIG_MOTOR_DRV_DRV2603)
 		if (drv2603_gpio_init())
-			goto err2;
-#elif defined(CONFIG_MOTOR_DRV_MAX77888)
-		if(max77888_gpio_init())
 			goto err2;
 #endif
 	}

@@ -673,21 +673,16 @@ static void smb358_charger_function_control(
 		smb358_set_command(client, SMB358_FLOAT_VOLTAGE, data);
 		/* Disable Automatic Recharge */
 		smb358_set_command(client, SMB358_CHARGE_CONTROL, 0x84);
+		smb358_set_command(client, SMB358_STAT_TIMERS_CONTROL, 0x0F);
 		smb358_set_command(client, SMB358_PIN_ENABLE_CONTROL, 0x09);
 		smb358_set_command(client, SMB358_THERM_CONTROL_A, 0xF0);
 		smb358_set_command(client, SMB358_SYSOK_USB30_SELECTION, 0x08);
 		smb358_set_command(client, SMB358_OTHER_CONTROL_A, 0x01);
 		smb358_set_command(client, SMB358_OTG_TLIM_THERM_CONTROL, 0xF6);
 		smb358_set_command(client, SMB358_LIMIT_CELL_TEMPERATURE_MONITOR, 0xA5);
+		smb358_set_command(client, SMB358_FAULT_INTERRUPT, 0x00);
 		smb358_set_command(client, SMB358_STATUS_INTERRUPT, 0x00);
 		smb358_set_command(client, SMB358_COMMAND_B, 0x00);
-		if (charger->pdata->chg_irq) {
-			smb358_set_command(client, SMB358_STAT_TIMERS_CONTROL, 0x1F);
-			smb358_set_command(client, SMB358_FAULT_INTERRUPT, 0x0C);
-		} else {
-			smb358_set_command(client, SMB358_STAT_TIMERS_CONTROL, 0x0F);
-			smb358_set_command(client, SMB358_FAULT_INTERRUPT, 0x00);
-		}
 
 	} else {
 		int full_check_type;
@@ -960,15 +955,10 @@ static void smb358_charger_function_control(
 			SMB358_LIMIT_CELL_TEMPERATURE_MONITOR, 0x01);
 
 		/* [STEP - 14] ================================================
-		 * FAULT interrupt - Disabled for non chg_irq, OVP enabled for chg_irq
+		 * FAULT interrupt - Disabled
 		*/
-		if (charger->pdata->chg_irq) {
-			smb358_set_command(client,
-				SMB358_FAULT_INTERRUPT, 0x0C);
-		} else {
-			smb358_set_command(client,
-				SMB358_FAULT_INTERRUPT, 0x00);
-		}
+		smb358_set_command(client,
+			SMB358_FAULT_INTERRUPT, 0x00);
 
 		/* [STEP - 15] ================================================
 		 * STATUS interrupt - Clear
@@ -1558,8 +1548,6 @@ static void smb358_chg_isr_work(struct work_struct *work)
 		case POWER_SUPPLY_HEALTH_GOOD:
 			dev_err(&charger->client->dev,
 				"%s: Interrupted but Good\n", __func__);
-			psy_do_property("battery", set,
-				POWER_SUPPLY_PROP_HEALTH, val);
 			break;
 
 		case POWER_SUPPLY_HEALTH_UNKNOWN:
@@ -1714,19 +1702,6 @@ static int smb358_charger_parse_dt(struct sec_charger_info *charger)
 					&pdata->ovp_uvlo_check_type);
 		if (ret < 0)
 			pr_err("%s: ovp_uvlo_check_type read failed (%d)\n", __func__, ret);
-
-		ret = of_get_named_gpio(np, "battery,chg_int", 0);
-		if (ret > 0) {
-			pdata->chg_irq = gpio_to_irq(ret);
-			pr_info("%s reading chg_int_gpio = %d\n", __func__, ret);
-		} else {
-			pr_info("%s reading chg_int_gpio is empty\n", __func__);
-		}
-
-		ret = of_property_read_u32(np, "battery,chg_irq_attr",
-					(unsigned int *)&pdata->chg_irq_attr);
-		if (ret)
-			pr_info("%s: chg_irq_attr is Empty\n", __func__);
 
 		ret = of_property_read_u32(np, "battery,full_check_type",
 					&pdata->full_check_type);

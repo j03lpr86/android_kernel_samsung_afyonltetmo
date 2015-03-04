@@ -41,7 +41,7 @@
 #include <asm/system_info.h>
 
 //#define SMART_ACL
-#define HBM_RE
+//#define HBM_RE
 //#define TEMPERATURE_ELVSS
 
 static struct dsi_buf dsi_panel_tx_buf;
@@ -629,11 +629,6 @@ static int update_bright_packet(int cmd_count, struct dsi_cmd *cmd_set)
 static struct dsi_cmd get_hbm_etc_control_set(void)
 {
 	struct dsi_cmd etc_hbm_control = {0,};
-
-	if (msd.dstat.acl_on || msd.dstat.siop_status)
-		hbm_etc_cmds_list.cmd_desc[1].payload[1] = 0x4C;
-	else
-		hbm_etc_cmds_list.cmd_desc[1].payload[1] = 0x5C;
 
 	/* Get the command desc */
 	etc_hbm_control.cmd_desc = &(hbm_etc_cmds_list.cmd_desc[0]);
@@ -1265,11 +1260,11 @@ static void mdss_dsi_panel_read_func(struct mdss_panel_data *pdata)
 	mipi_samsung_read_nv_mem(pdata, &nv_mtp_hbm_read_cmds, hbm_buffer);
 	memcpy(&hbm_gamma_cmds_list.cmd_desc[0].payload[1], hbm_buffer, 7);
 
-	/* octa panel Read C8h 40th -> write B6h 1st */
+	/* octa panel Read C8h 40th -> write B6h 21th */
 	if(hbm_etc_cmds_list.cmd_desc)
-		memcpy(&hbm_etc_cmds_list.cmd_desc[3].payload[1], hbm_buffer+6, 1);
+		memcpy(&hbm_etc_cmds_list.cmd_desc[1].payload[21], hbm_buffer+6, 1);
 
-	/* Read mtp (C8h 43th ~ 57th) for HBM */
+	/* Read mtp (C8h 73th ~ 87th) for HBM */
 	mipi_samsung_read_nv_mem(pdata, &nv_mtp_hbm2_read_cmds, hbm_buffer);
 	memcpy(&hbm_gamma_cmds_list.cmd_desc[0].payload[7], hbm_buffer, 15);
 #endif

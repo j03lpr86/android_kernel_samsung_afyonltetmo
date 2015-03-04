@@ -114,12 +114,7 @@
 #define CMD_TEST_SET_TX_POWER		"TEST_SET_TX_POWER"
 #define CMD_TEST_GET_TX_POWER		"TEST_GET_TX_POWER"
 #endif /* TEST_TX_POWER_CONTROL */
-#ifdef TX_POWER_CONTROL_CALLING
-#define CMD_SET_TX_POWER_CALLING		"SET_TX_POWER_CALLING"
-#endif /* TX_POWER_CONTROL_CALLING */
-#ifdef SARLIMIT_TX_CONTROL_NVRAM
 #define CMD_SARLIMIT_TX_CONTROL		"SET_TX_POWER_CALLING"
-#endif /* SARLIMIT_TX_CONTROL_NVRAM */
 #endif /* CUSTOMER_HW4 */
 #ifdef WLFBT
 #define CMD_GET_FTKEY      "GET_FTKEY"
@@ -2181,7 +2176,7 @@ int wl_android_set_singlecore_scan(struct net_device *dev, char *command, int to
 
 	return error;
 }
-#if defined(TEST_TX_POWER_CONTROL) || defined(TX_POWER_CONTROL_CALLING)
+#ifdef TEST_TX_POWER_CONTROL
 static int
 wl_android_set_tx_power(struct net_device *dev, const char* string_num)
 {
@@ -2201,12 +2196,6 @@ wl_android_set_tx_power(struct net_device *dev, const char* string_num)
 	else
 		type = NL80211_TX_POWER_FIXED;
 
-#ifdef TX_POWER_CONTROL_CALLING
-	if (dbm == 0) {
-		dbm = TX_CALLING_POWER;
-	}
-#endif
-
 	err = wl_set_tx_power(dev, type, dbm);
 	if (unlikely(err)) {
 		DHD_ERROR(("%s: error (%d)\n", __FUNCTION__, err));
@@ -2215,9 +2204,7 @@ wl_android_set_tx_power(struct net_device *dev, const char* string_num)
 
 	return 1;
 }
-#endif /* TEST_TX_POWER_CONTROL || TX_POWER_CONTROL_CALLING */
 
-#ifdef TEST_TX_POWER_CONTROL
 static int
 wl_android_get_tx_power(struct net_device *dev, char *command, int total_len)
 {
@@ -2240,7 +2227,6 @@ wl_android_get_tx_power(struct net_device *dev, char *command, int total_len)
 }
 #endif /* TEST_TX_POWER_CONTROL */
 
-#ifdef SARLIMIT_TX_CONTROL_NVRAM
 static int
 wl_android_set_sarlimit_txctrl(struct net_device *dev, const char* string_num)
 {
@@ -2268,8 +2254,6 @@ wl_android_set_sarlimit_txctrl(struct net_device *dev, const char* string_num)
 	}
 	return 1;
 }
-#endif /* SARLIMIT_TX_CONTROL_NVRAM */
-
 #endif /* CUSTOMER_HW4 */
 
 int wl_android_set_roam_mode(struct net_device *dev, char *command, int total_len)
@@ -3528,20 +3512,11 @@ int wl_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 		wl_android_get_tx_power(net, command, priv_cmd.total_len);
 	}
 #endif /* TEST_TX_POWER_CONTROL */
-#ifdef TX_POWER_CONTROL_CALLING
-	else if (strnicmp(command, CMD_SET_TX_POWER_CALLING,
-		strlen(CMD_SET_TX_POWER_CALLING)) == 0) {
-		int skip = strlen(CMD_SET_TX_POWER_CALLING) + 1;
-		wl_android_set_tx_power(net, (const char*)command+skip);
-	}
-#endif /* TX_POWER_CONTROL_CALLING */
-#ifdef SARLIMIT_TX_CONTROL_NVRAM
 	else if (strnicmp(command, CMD_SARLIMIT_TX_CONTROL,
 		strlen(CMD_SARLIMIT_TX_CONTROL)) == 0) {
 		int skip = strlen(CMD_SARLIMIT_TX_CONTROL) + 1;
 		wl_android_set_sarlimit_txctrl(net, (const char*)command+skip);
 	}
-#endif /* SARLIMIT_TX_CONTROL_NVRAM */
 #endif /* CUSTOMER_HW4 */
 	else if (strnicmp(command, CMD_HAPD_MAC_FILTER, strlen(CMD_HAPD_MAC_FILTER)) == 0) {
 		int skip = strlen(CMD_HAPD_MAC_FILTER) + 1;

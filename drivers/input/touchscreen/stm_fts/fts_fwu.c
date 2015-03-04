@@ -40,19 +40,19 @@ int fts_fw_wait_for_flash_ready(struct fts_ts_info *info)
 	int retry = 0;
 
 	regAdd = FTS_CMD_READ_FLASH_STAT;
-
+	retry = 0;
 	while (info->fts_read_reg
 		(info, &regAdd, 1, (unsigned char *)buf, 1)) {
 		if ((buf[0] & 0x01) == 0)
 			break;
-
-		if (retry++ > FTS_RETRY_COUNT * 10) {
+		if (retry++ > 300)
+			 {
 			tsp_debug_err(true, info->dev,
 				 "%s: Time Over\n",
 				 __func__);
 			return -1;
 			}
-		msleep(20);
+		mdelay(10);
 	}
 	return 0;
 }
@@ -78,9 +78,6 @@ int fts_fw_burn(struct fts_ts_info *info, unsigned char *fw_data)
 	tsp_debug_info(true, info->dev, "%s: Copy to PRAM\n", __func__);
 	regAdd[0] = FTS_CMD_WRITE_PRAM;
 	for (section = 0; section < (64 * 1024 / WRITE_CHUNK_SIZE); section++) {
-#if defined(CONFIG_SEC_S_PROJECT)
-		regAdd[0] = FTS_CMD_WRITE_PRAM + (((section * WRITE_CHUNK_SIZE) >> 16) & 0x0f);
-#endif
 		regAdd[1] = ((section * WRITE_CHUNK_SIZE) >> 8) & 0xff;
 		regAdd[2] = (section * WRITE_CHUNK_SIZE) & 0xff;
 		memcpy(&regAdd[3],
@@ -88,9 +85,7 @@ int fts_fw_burn(struct fts_ts_info *info, unsigned char *fw_data)
 				 sizeof(struct fts64_header)],
 			WRITE_CHUNK_SIZE);
 		info->fts_write_reg(info, &regAdd[0], WRITE_CHUNK_SIZE + 3);
-	}
-
-	msleep(100);
+	} msleep(100);
 
 	// Erase Program Flash
 	tsp_debug_info(true, info->dev, "%s: Erase Program Flash\n", __func__);
@@ -150,7 +145,7 @@ int GetSystemStatus(struct fts_ts_info *info, unsigned char *val1, unsigned char
 			break;
 		}
 
-		if (retry++ > FTS_RETRY_COUNT) {
+		if (retry++ > 30) {
 			rc = -1;
 			tsp_debug_err(true, info->dev,
 				"Time Over - GetSystemStatus\n");
@@ -174,22 +169,18 @@ int fts_fw_wait_for_event(struct fts_ts_info *info, unsigned char eid)
 	while (info->fts_read_reg
 	       (info, &regAdd, 1, (unsigned char *)data, FTS_EVENT_SIZE)) {
 		if ((data[0] == EVENTID_STATUS_EVENT) &&
-#if defined(CONFIG_SEC_S_PROJECT)
-			(data[1] == eid)) {
-#else
 			(data[1] == 0x0B) &&
 			(data[2] == eid)) {
-#endif
 			rc = 0;
 			break;
 		}
 
-		if (retry++ > FTS_RETRY_COUNT * 15) {
+		if (retry++ > 300) {
 			rc = -1;
 			tsp_debug_info(true, info->dev, "%s: Time Over\n", __func__);
 			break;
 		}
-		msleep(20);
+		mdelay(10);
 	}
 
 	return rc;
@@ -198,17 +189,11 @@ int fts_fw_wait_for_event(struct fts_ts_info *info, unsigned char eid)
 
 void fts_fw_init(struct fts_ts_info *info)
 {
-	tsp_debug_info(true, info->dev,"%s, line:%d\n",__func__, __LINE__);
-
 	info->fts_command(info, SLEEPOUT);
-	msleep(50);
+	msleep(200);
 	info->fts_command(info, CX_TUNNING);
 	msleep(300);
-#if defined(CONFIG_SEC_S_PROJECT)
-	fts_fw_wait_for_event(info, 0x01);
-#else
 	fts_fw_wait_for_event(info, 0x03);
-#endif
 
 #if defined(CONFIG_SEC_T10_PROJECT)   // not use 0x96 register is key cx tune
 
@@ -219,22 +204,14 @@ void fts_fw_init(struct fts_ts_info *info)
 #else  // HOVER_USE
         info->fts_command(info, SELF_AUTO_TUNE);
         msleep(300);
-#endif
-
-
-#if defined(CONFIG_SEC_S_PROJECT)
-	fts_fw_wait_for_event(info, 0x42);
-
-	info->fts_command(info, FTS_CMD_SAVE_CX_TUNING);
-	msleep(400);
-#else
 	fts_fw_wait_for_event(info, 0x07);
+#endif
 
 	info->fts_command(info, FTS_CMD_SAVE_FWCONFIG);
 	msleep(200);
 	info->fts_command(info, FTS_CMD_SAVE_CX_TUNING);
 	msleep(200);
-#endif
+
 
 	// Reset FTS
 	info->fts_systemreset(info);
@@ -242,7 +219,7 @@ void fts_fw_init(struct fts_ts_info *info)
 	msleep(200);
 
 	info->fts_command(info, SLEEPOUT);
-	msleep(50);
+	msleep(200);
 
 	info->fts_command(info, SENSEON);
 
@@ -292,8 +269,8 @@ const int fts_fw_updater(struct fts_ts_info *info, unsigned char *fw_data)
 				break;
 			}
 		}
-
-		if (retry++ > 3) {
+		if (retry++ > 3)
+			 {
 			tsp_debug_err(true, info->dev, "%s: Fail Firmware update\n",
 				 __func__);
 			retval = -1;
@@ -475,7 +452,10 @@ static int fts_load_fw_from_ums(struct fts_ts_info *info)
 					hrtimer_start(&info->timer,
 						  ktime_set(1, 0),
 						  HRTIMER_MODE_REL);
-			} else {
+			}
+
+			else
+				 {
 				error = -1;
 				tsp_debug_err(true, info->dev,
 					 "%s: File type is not match with FTS64 file. [%8x]\n",

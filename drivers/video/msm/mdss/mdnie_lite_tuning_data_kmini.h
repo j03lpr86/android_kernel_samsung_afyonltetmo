@@ -132,7 +132,7 @@ static char STANDARD_UI_1[] = {
 	0x01, //mdnie_en
 	0x00, //mask 000
 	0x33, //scr_roi 1 scr algo_roi 1 algo 00 1 0 00 1 0
-	0x01, //data_width sharpen cs gamma 00 00 0 0
+	0x00, //data_width sharpen cs gamma 00 00 0 0
 };
 
 static char STANDARD_UI_2[] = {
@@ -260,19 +260,19 @@ static char NATURAL_UI_2[] = {
 	0x00, //scr Cr Yb
 	0xff, //scr Rr Bb
 	0xff, //scr Cg Yg
-	0x04, //scr Rg Bg
-	0xec, //scr Cb Yr
-	0x08, //scr Rb Br
+	0x16, //scr Rg Bg
+	0xe5, //scr Cb Yr
+	0x0e, //scr Rb Br
 	0xff, //scr Mr Mb
-	0x0b, //scr Gr Gb
-	0x00, //scr Mg Mg
+	0x00, //scr Gr Gb
+	0x14, //scr Mg Mg
 	0xff, //scr Gg Gg
 	0xd9, //scr Mb Mr
-	0x14, //scr Gb Gr
-	0xff, //scr Yr Cb
-	0x20, //scr Br Rb
+	0x04, //scr Gb Gr
+	0xfc, //scr Yr Cb
+	0x26, //scr Br Rb
 	0xff, //scr Yg Cg
-	0x0a, //scr Bg Rg
+	0x1b, //scr Bg Rg
 	0x23, //scr Yb Cr
 	0xff, //scr Bb Rr
 	0xff, //scr Wr Wb
@@ -776,19 +776,19 @@ static char NATURAL_GALLERY_2[] = {
 	0x00, //scr Cr Yb
 	0xff, //scr Rr Bb
 	0xff, //scr Cg Yg
-	0x04, //scr Rg Bg
-	0xec, //scr Cb Yr
-	0x08, //scr Rb Br
+	0x16, //scr Rg Bg
+	0xe5, //scr Cb Yr
+	0x0e, //scr Rb Br
 	0xff, //scr Mr Mb
-	0x0b, //scr Gr Gb
-	0x00, //scr Mg Mg
+	0x00, //scr Gr Gb
+	0x14, //scr Mg Mg
 	0xff, //scr Gg Gg
 	0xd9, //scr Mb Mr
-	0x14, //scr Gb Gr
-	0xff, //scr Yr Cb
-	0x20, //scr Br Rb
+	0x04, //scr Gb Gr
+	0xfc, //scr Yr Cb
+	0x26, //scr Br Rb
 	0xff, //scr Yg Cg
-	0x0a, //scr Bg Rg
+	0x1b, //scr Bg Rg
 	0x23, //scr Yb Cr
 	0xff, //scr Bb Rr
 	0xff, //scr Wr Wb
@@ -1293,19 +1293,19 @@ static char NATURAL_VIDEO_2[] = {
 	0x00, //scr Cr Yb
 	0xff, //scr Rr Bb
 	0xff, //scr Cg Yg
-	0x04, //scr Rg Bg
-	0xec, //scr Cb Yr
-	0x08, //scr Rb Br
+	0x16, //scr Rg Bg
+	0xe5, //scr Cb Yr
+	0x0e, //scr Rb Br
 	0xff, //scr Mr Mb
-	0x0b, //scr Gr Gb
-	0x00, //scr Mg Mg
+	0x00, //scr Gr Gb
+	0x14, //scr Mg Mg
 	0xff, //scr Gg Gg
 	0xd9, //scr Mb Mr
-	0x14, //scr Gb Gr
-	0xff, //scr Yr Cb
-	0x20, //scr Br Rb
+	0x04, //scr Gb Gr
+	0xfc, //scr Yr Cb
+	0x26, //scr Br Rb
 	0xff, //scr Yg Cg
-	0x0a, //scr Bg Rg
+	0x1b, //scr Bg Rg
 	0x23, //scr Yb Cr
 	0xff, //scr Bb Rr
 	0xff, //scr Wr Wb
@@ -1810,19 +1810,19 @@ static char NATURAL_VT_2[] = {
 	0x00, //scr Cr Yb
 	0xff, //scr Rr Bb
 	0xff, //scr Cg Yg
-	0x04, //scr Rg Bg
-	0xec, //scr Cb Yr
-	0x08, //scr Rb Br
+	0x16, //scr Rg Bg
+	0xe5, //scr Cb Yr
+	0x0e, //scr Rb Br
 	0xff, //scr Mr Mb
-	0x0b, //scr Gr Gb
-	0x00, //scr Mg Mg
+	0x00, //scr Gr Gb
+	0x14, //scr Mg Mg
 	0xff, //scr Gg Gg
 	0xd9, //scr Mb Mr
-	0x14, //scr Gb Gr
-	0xff, //scr Yr Cb
-	0x20, //scr Br Rb
+	0x04, //scr Gb Gr
+	0xfc, //scr Yr Cb
+	0x26, //scr Br Rb
 	0xff, //scr Yg Cg
-	0x0a, //scr Bg Rg
+	0x1b, //scr Bg Rg
 	0x23, //scr Yb Cr
 	0xff, //scr Bb Rr
 	0xff, //scr Wr Wb
@@ -2741,19 +2741,19 @@ char NATURAL_BROWSER_2[] = {
 	0x00, //scr Cr Yb
 	0xff, //scr Rr Bb
 	0xff, //scr Cg Yg
-	0x04, //scr Rg Bg
-	0xec, //scr Cb Yr
-	0x08, //scr Rb Br
+	0x16, //scr Rg Bg
+	0xe5, //scr Cb Yr
+	0x0e, //scr Rb Br
 	0xff, //scr Mr Mb
-	0x0b, //scr Gr Gb
-	0x00, //scr Mg Mg
+	0x00, //scr Gr Gb
+	0x14, //scr Mg Mg
 	0xff, //scr Gg Gg
 	0xd9, //scr Mb Mr
-	0x14, //scr Gb Gr
-	0xff, //scr Yr Cb
-	0x20, //scr Br Rb
+	0x04, //scr Gb Gr
+	0xfc, //scr Yr Cb
+	0x26, //scr Br Rb
 	0xff, //scr Yg Cg
-	0x0a, //scr Bg Rg
+	0x1b, //scr Bg Rg
 	0x23, //scr Yb Cr
 	0xff, //scr Bb Rr
 	0xff, //scr Wr Wb
@@ -3464,19 +3464,19 @@ char NATURAL_EBOOK_2[] = {
 	0x00, //scr Cr Yb
 	0xff, //scr Rr Bb
 	0xff, //scr Cg Yg
-	0x04, //scr Rg Bg
-	0xec, //scr Cb Yr
-	0x08, //scr Rb Br
+	0x16, //scr Rg Bg
+	0xe5, //scr Cb Yr
+	0x0e, //scr Rb Br
 	0xff, //scr Mr Mb
-	0x0b, //scr Gr Gb
-	0x00, //scr Mg Mg
+	0x00, //scr Gr Gb
+	0x14, //scr Mg Mg
 	0xff, //scr Gg Gg
 	0xd9, //scr Mb Mr
-	0x14, //scr Gb Gr
-	0xff, //scr Yr Cb
-	0x20, //scr Br Rb
+	0x04, //scr Gb Gr
+	0xfc, //scr Yr Cb
+	0x26, //scr Br Rb
 	0xff, //scr Yg Cg
-	0x0a, //scr Bg Rg
+	0x1b, //scr Bg Rg
 	0x23, //scr Yb Cr
 	0xff, //scr Bb Rr
 	0xff, //scr Wr Wb

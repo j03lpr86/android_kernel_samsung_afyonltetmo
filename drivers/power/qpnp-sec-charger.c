@@ -194,7 +194,11 @@ extern void bms_quickstart(void);
 #define BOOST_PWR_EN			BIT(7)
 #ifdef SEC_CHARGER_CODE
 /* OVP : 7.0v - UVLO : 4.05v */
+#ifdef CONFIG_MACH_KANAS3G_CTC
+#define OVP_UVLO_THRESHOLD		0x3F
+#else
 #define OVP_UVLO_THRESHOLD		0x33
+#endif
 #else
 #define OVP_UVLO_THRESHOLD		0x3F
 #endif
@@ -1703,9 +1707,7 @@ qpnp_chg_usb_usbin_valid_irq_handler(int irq, void *_chip)
 			#endif
 			schedule_work(&chip->soc_check_work);
 		}
-		#ifndef SEC_CHARGER_CODE
 		power_supply_set_present(chip->usb_psy, chip->usb_present);
-		#endif
 	}
 
 	#if 0
@@ -1776,9 +1778,8 @@ qpnp_chg_usb_usbin_valid_irq_handler(int irq, void *_chip)
 			schedule_delayed_work(&chip->eoc_work,
 				msecs_to_jiffies(EOC_CHECK_PERIOD_MS));
 		}
-		#ifndef SEC_CHARGER_CODE
+
 		power_supply_set_present(chip->usb_psy, chip->usb_present);
-		#endif
 	}
 
 	return IRQ_HANDLED;
@@ -2986,7 +2987,7 @@ qpnp_batt_power_get_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_ONLINE:
 		switch (chip->cable_type) {
 		case CABLE_TYPE_NONE:
-			val->intval = POWER_SUPPLY_TYPE_BATTERY;
+			val->intval = 0;
 			break;
 		case CABLE_TYPE_USB:
 			val->intval = POWER_SUPPLY_TYPE_USB;
@@ -5298,6 +5299,7 @@ sec_bat_read_dt_props(struct qpnp_chg_chip *chip)
 #endif
 	SEC_BAT_OF_PROP_READ(chip, ui_full_soc, "ui-full-soc", rc, 0);
 	SEC_BAT_OF_PROP_READ(chip, ui_full_current, "ui-full-current", rc, 0);
+	SEC_BAT_OF_PROP_READ(chip, ui_full_voltage, "ui-full-voltage", rc, 0);
 	SEC_BAT_OF_PROP_READ(chip, ui_full_count, "ui-full-count", rc, 0);
         SEC_BAT_OF_PROP_READ(chip, charging_term_time, "charging-term-time", rc, 0);
 	chip->batt_pdata->charging_term_time = chip->batt_pdata->charging_term_time * 60;
@@ -5309,6 +5311,7 @@ sec_bat_read_dt_props(struct qpnp_chg_chip *chip)
 #ifdef SEC_CHARGER_DEBUG
 	pr_err("ui-full-soc %d\n",chip->batt_pdata->ui_full_soc);
 	pr_err("ui-full-current %d\n",chip->batt_pdata->ui_full_current);
+	pr_err("ui-full-voltage %d\n",chip->batt_pdata->ui_full_voltage);
 	pr_err("ui-full-count %d\n",chip->batt_pdata->ui_full_count);
         pr_err("charging-term-time %d\n",chip->batt_pdata->charging_term_time);
         pr_err("recharging-voltage %d\n",chip->batt_pdata->recharging_voltage);
@@ -6311,11 +6314,8 @@ static void sec_bat_monitor(struct work_struct *work)
 #ifdef SEC_BTM_TEST
 	static u8 btm_count;
 #endif
-	#if defined(CONFIG_MACH_CS03_SGLTE) || defined(CONFIG_MACH_Q7_CHN_SGLTE) || defined(CONFIG_MACH_VICTOR_CHN_SGLTE)
 	int rc;
 	u8 buck_sts = 0;
-	#endif
-
 
 	if (chip->is_in_sleep)
 		chip->is_in_sleep = false;
@@ -6415,7 +6415,6 @@ static void sec_bat_monitor(struct work_struct *work)
 
 	if (chip->batt_status == POWER_SUPPLY_STATUS_CHARGING || chip->is_recharging) {
 		if ( qpnp_chg_is_usb_chg_plugged_in(chip) && !chip->charging_disabled ) {
-			#if defined(CONFIG_MACH_CS03_SGLTE) || defined(CONFIG_MACH_Q7_CHN_SGLTE) || defined(CONFIG_MACH_VICTOR_CHN_SGLTE)
 			rc = qpnp_chg_read(chip, &buck_sts, INT_RT_STS(chip->buck_base), 1);
 			if (!rc) {
 				if (buck_sts & VDD_LOOP_IRQ) {
@@ -6424,14 +6423,13 @@ static void sec_bat_monitor(struct work_struct *work)
 			} else {
 				pr_err("failed to read buck rc=%d\n", rc);
 			}
-			#endif
 			if(chip->ui_full_chg) { /* second phase charging */
 				pr_err("second phase charging: ui_full_chg(%d) \n",chip->ui_full_chg);
 
 			} else { /* first phase charging */
 
 				if (((current_now * -1) < chip->batt_pdata->ui_full_current) &&
-					(batt_voltage >= chip->batt_pdata->recharging_voltage) &&
+					(batt_voltage >= chip->batt_pdata->ui_full_voltage) &&
 					(chip->recent_reported_soc >= chip->batt_pdata->ui_full_soc)) {
 
 					chip->ui_full_cnt++;
@@ -7216,7 +7214,6 @@ qpnp_charger_probe(struct spmi_device *spmi)
 	power_supply_set_present(chip->usb_psy,
 			qpnp_chg_is_usb_chg_plugged_in(chip));
 	#endif
-
 	rc = qpnp_chg_regulator_batfet_set(chip, 1);
 	if (rc)
 		pr_err("failed to write to batt_if rc=%d\n", rc);

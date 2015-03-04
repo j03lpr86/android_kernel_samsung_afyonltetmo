@@ -43,6 +43,8 @@
 
 #if defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_FULL_HD_PT_PANEL) // H
 #include "mdnie_lite_tuning_data_hlte.h"
+#elif defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_VIDEO_FULL_HD_PT_PANEL) // KS01
+#include "mdnie_lite_tuning_data.h"
 #elif defined(CONFIG_FB_MSM_MIPI_SAMSUNG_YOUM_CMD_FULL_HD_PT_PANEL) // F
 #include "mdnie_lite_tuning_data_flte.h"
 #elif defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQHD_PT_PANEL) // K
@@ -54,9 +56,9 @@
 /*
 #elif defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_VIDEO_WVGA_S6E88A0_PT_PANEL) // ?
 #include "mdnie_lite_tuning_data_wvga_s6e88a0.h"
-*/
-#elif defined(CONFIG_MACH_JS01LTEDCM) // JS01
+#elif defined(CONFIG_MACH_JS01LTEDCM) || defined(CONFIG_MACH_JS01LTESBM) // JS01
 #include "mdnie_lite_tuning_data_js01.h"
+*/
 #elif defined(CONFIG_FB_MSM_MDSS_SAMSUNG_OCTA_VIDEO_720P_PT_PANEL)
 #include "mdnie_lite_tuning_data_fresco.h"
 #elif defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL) \
@@ -68,7 +70,7 @@
 #include "mdss_ms01_panel.h"
 #include "mdnie_lite_tuning_data_ms01.h"
 #else
-#include "mdnie_lite_tuning_data.h"	// KS01
+#include "mdnie_lite_tuning_data.h"
 #endif
 
 #if defined(CONFIG_TDMB)
@@ -81,9 +83,6 @@
 
 #if defined(CONFIG_FB_MSM_MDSS_MDP3)
 static struct mdss_dsi_driver_data *mdnie_msd;
-#if defined(CONFIG_FB_MSM_MDSS_DSI_DBG)
-int dsi_ctrl_on;
-#endif
 #else
 static struct mipi_samsung_driver_data *mdnie_msd;
 #endif
@@ -198,8 +197,7 @@ const char accessibility_name[ACCESSIBILITY_MAX][20] = {
 	"COLOR_BLIND_MODE",
 #if defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQHD_PT_PANEL) || \
 	defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_FULL_HD_PT_PANEL) || defined (CONFIG_FB_MSM_MIPI_MAGNA_OCTA_CMD_HD_PT_PANEL)||\
-	defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)	|| defined(CONFIG_FB_MSM_MIPI_MAGNA_OCTA_VIDEO_WXGA_PT_DUAL_PANEL) ||\
-	defined(CONFIG_MACH_JS01LTEDCM)
+	defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)	|| defined(CONFIG_FB_MSM_MIPI_MAGNA_OCTA_VIDEO_WXGA_PT_DUAL_PANEL)
 	"SCREEN_CURTAIN_MODE",
 #endif
 #endif /* NEGATIVE_COLOR_USE_ACCESSIBILLITY */
@@ -351,37 +349,10 @@ void sending_tuning_cmd(void)
 	mfd = mdnie_msd->mfd;
 	ctrl_pdata = mdnie_msd->ctrl_pdata;
 
-#if defined(CONFIG_FB_MSM_MDSS_MDP3)
-	if (!mfd) {
-		DPRINT("[ERROR] mfd is null!\n");
-		return;
-	}
-
-	if (mfd->blank_mode) {
-		DPRINT("[ERROR] blank_mode (%d). do not send mipi cmd.\n",
-			mfd->blank_mode);
-		return;
-	}
-#endif
-
 	if (mfd->resume_state == MIPI_SUSPEND_STATE) {
 		DPRINT("[ERROR] not ST_DSI_RESUME. do not send mipi cmd.\n");
 		return;
 	}
-
-#if defined(CONFIG_FB_MSM_MDSS_MDP3)
-	if (!mdnie_tun_state.mdnie_enable) {
-		DPRINT("[ERROR] mDNIE engine is OFF.\n");
-		return;
-	}
-
-#if defined(CONFIG_FB_MSM_MDSS_DSI_DBG)
-	if(!dsi_ctrl_on) {
-		DPRINT("[ERROR] dsi_on (%d). do not send mipi cmd.\n", dsi_ctrl_on);
-		return;
-	}
-#endif
-#endif
 
 #if defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQHD_PT_PANEL)|| defined(CONFIG_FB_MSM_MIPI_MAGNA_OCTA_CMD_HD_PT_PANEL)
 #if defined(CONFIG_LCD_CLASS_DEVICE) && defined(DDI_VIDEO_ENHANCE_TUNING)
@@ -449,13 +420,6 @@ void mDNIe_Set_Mode(void)
 			mdnie_tun_state.scenario);
 		return;
 	}
-
-#if defined(CONFIG_FB_MSM_MDSS_DSI_DBG) && defined(CONFIG_FB_MSM_MDSS_MDP3)
-	if(!dsi_ctrl_on) {
-		DPRINT("[ERROR] dsi_on (%d). do not send mipi cmd.\n", dsi_ctrl_on);
-		return;
-	}
-#endif
 
 	play_speed_1_5 = 0;
 
@@ -910,8 +874,7 @@ static ssize_t accessibility_store(struct device *dev,
 		#endif
 #if defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQHD_PT_PANEL) || \
 	defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_FULL_HD_PT_PANEL) || defined (CONFIG_FB_MSM_MIPI_MAGNA_OCTA_CMD_HD_PT_PANEL) ||\
-	defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL) || defined(CONFIG_FB_MSM_MIPI_MAGNA_OCTA_VIDEO_WXGA_PT_DUAL_PANEL) ||\
-	defined(CONFIG_MACH_JS01LTEDCM)
+	defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL) || defined(CONFIG_FB_MSM_MIPI_MAGNA_OCTA_VIDEO_WXGA_PT_DUAL_PANEL)
 	else if (cmd_value == SCREEN_CURTAIN) {
 		mdnie_tun_state.accessibility = SCREEN_CURTAIN;
 	}

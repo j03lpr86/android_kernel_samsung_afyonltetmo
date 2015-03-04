@@ -22,7 +22,7 @@
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: dhd_linux.c 480583 2014-05-24 07:26:44Z $
+ * $Id: dhd_linux.c 476604 2014-05-09 09:02:24Z $
  */
 
 #include <typedefs.h>
@@ -1789,7 +1789,7 @@ dhd_os_wlfc_unblock(dhd_pub_t *pub)
 }
 
 const uint8 wme_fifo2ac[] = { 0, 1, 2, 3, 1, 1 };
-const uint8 prio2fifo[8] = { 1, 0, 0, 1, 2, 2, 3, 3 };
+uint8 prio2fifo[8] = { 1, 0, 0, 1, 2, 2, 3, 3 };
 #define WME_PRIO2AC(prio)	wme_fifo2ac[prio2fifo[(prio)]]
 
 #endif /* PROP_TXSTATUS */
@@ -4534,7 +4534,7 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 #if defined(CUSTOMER_HW4) && defined(ENABLE_BCN_LI_BCN_WAKEUP)
 	uint32 bcn_li_bcn = 1;
 #endif /* CUSTOMER_HW4 && ENABLE_BCN_LI_BCN_WAKEUP */
-	uint retry_max = 7;
+	uint retry_max = 3;
 #if defined(ARP_OFFLOAD_SUPPORT)
 	int arpoe = 1;
 #endif

@@ -80,9 +80,6 @@ struct max86900_device_data
 	struct input_dev *hrm_input_dev;
 	struct mutex i2clock;
 	struct mutex activelock;
-#if defined(CONFIG_SENSORS_SSP_STM_HESTIA)
-	int ldo_en;
-#else
 	struct regulator *vdd_1p8;
 #if defined(CONFIG_SEC_KACTIVE_PROJECT) || defined(CONFIG_MACH_KSPORTSLTE_SPR)
 	struct regulator *vdd_3p3;
@@ -91,7 +88,6 @@ struct max86900_device_data
 #if defined(CONFIG_SEC_KACTIVE_PROJECT) || defined(CONFIG_MACH_KSPORTSLTE_SPR)
 	const char *led_l19;
 #endif
-#endif /* CONFIG_SENSORS_SSP_STM_HESTIA */
 	bool *bio_status;
 	atomic_t is_enable;
 	atomic_t is_suspend;

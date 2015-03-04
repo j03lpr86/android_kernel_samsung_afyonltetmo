@@ -118,13 +118,6 @@ static int max86900_read_reg(struct max86900_device_data *data,
 }
 
 /* Device Control */
-#if defined(CONFIG_SENSORS_SSP_STM_HESTIA)
-void max86900_led_ldo_onoff(struct max86900_device_data *data, int onoff)
-{
-	gpio_set_value_cansleep(data->ldo_en, onoff);
-	pr_info("%s - LED 3.3V onoff = %d\n", __func__, onoff);
-}
-#else
 static int max86900_regulator_onoff(struct max86900_device_data *data, int onoff)
 {
 	data->vdd_1p8 = regulator_get(NULL, data->sub_ldo4);
@@ -168,7 +161,6 @@ err_3p3:
 err_1p8:
 	return -ENODEV;
 }
-#endif /* CONFIG_SENSORS_SSP_STM_HESTIA */
 
 static int max86900_init_device(struct max86900_device_data *data)
 {
@@ -492,14 +484,6 @@ void max86900_mode_enable(struct max86900_device_data *data, int onoff)
 {
 	int err;
 	if (onoff) {
-#if defined(CONFIG_SENSORS_SSP_STM_HESTIA)
-		max86900_led_ldo_onoff(data, HRM_LDO_ON);
-		usleep_range(1000, 1100);
-		err = max86900_init_device(data);
-		if (err)
-			pr_err("%s max86900_init device fail err = %d\n",
-				__func__, err);
-#else
 		if (data->sub_ldo4 != NULL) {
 			err = max86900_regulator_onoff(data, HRM_LDO_ON);
 			if (err < 0)
@@ -511,7 +495,6 @@ void max86900_mode_enable(struct max86900_device_data *data, int onoff)
 				pr_err("%s max86900_init device fail err = %d\n",
 					__func__, err);
 		}
-#endif
 		err = max86900_enable(data);
 		if (err != 0)
 			pr_err("max86900_enable err : %d\n", err);
@@ -521,16 +504,13 @@ void max86900_mode_enable(struct max86900_device_data *data, int onoff)
 		err = max86900_disable(data);
 		if (err != 0)
 			pr_err("max86900_disable err : %d\n", err);
-#if defined(CONFIG_SENSORS_SSP_STM_HESTIA)
-		max86900_led_ldo_onoff(data, HRM_LDO_OFF);
-#else
 		if (data->sub_ldo4 != NULL) {
 			err = max86900_regulator_onoff(data, HRM_LDO_OFF);
 			if (err < 0)
 				pr_err("%s max86900_regulator_off fail err = %d\n",
 					__func__, err);
 		}
-#endif
+
 		atomic_set(&data->is_enable, 0);
 	}
 	pr_info("%s - part_type = %u, onoff = %d\n", __func__, data->part_type, onoff);
@@ -965,15 +945,12 @@ static ssize_t int_pin_check(struct device *dev,
 	u8 recvData;
 
 	/* DEVICE Power-up */
-#if defined(CONFIG_SENSORS_SSP_STM_HESTIA)
-	max86900_led_ldo_onoff(data, HRM_LDO_ON);
-#else
 	err = max86900_regulator_onoff(data, HRM_LDO_ON);
 	if (err < 0) {
 		pr_err("max86900_%s - regulator on fail\n", __func__);
 		goto exit;
 	}
-#endif
+
 	usleep_range(1000, 1100);
 	/* check INT pin state */
 	pin_state = gpio_get_value_cansleep(data->hrm_int);
@@ -981,11 +958,7 @@ static ssize_t int_pin_check(struct device *dev,
 	if (pin_state) {
 		pr_err("max86900_%s - INT pin state is high before INT clear\n", __func__);
 		err = -1;
-#if defined(CONFIG_SENSORS_SSP_STM_HESTIA)
-		max86900_led_ldo_onoff(data, HRM_LDO_OFF);
-#else
 		max86900_regulator_onoff(data, HRM_LDO_OFF);
-#endif
 		goto exit;
 	}
 
@@ -995,11 +968,7 @@ static ssize_t int_pin_check(struct device *dev,
 	if ((err = max86900_read_reg(data, &recvData, 1)) != 0) {
 		pr_err("max86900_%s - max86900_read_reg err:%d, address:0x%02x\n",
 			__func__, err, recvData);
-#if defined(CONFIG_SENSORS_SSP_STM_HESTIA)
-		max86900_led_ldo_onoff(data, HRM_LDO_OFF);
-#else
 		max86900_regulator_onoff(data, HRM_LDO_OFF);
-#endif
 		goto exit;
 	}
 
@@ -1009,20 +978,12 @@ static ssize_t int_pin_check(struct device *dev,
 	if (!pin_state) {
 		pr_err("max86900_%s - INT pin state is low after INT clear\n", __func__);
 		err = -1;
-#if defined(CONFIG_SENSORS_SSP_STM_HESTIA)
-		max86900_led_ldo_onoff(data, HRM_LDO_OFF);
-#else
 		max86900_regulator_onoff(data, HRM_LDO_OFF);
-#endif
 		goto exit;
 	}
 	pr_info("max86900_%s - After INT clear %d\n", __func__, pin_state);
 
-#if defined(CONFIG_SENSORS_SSP_STM_HESTIA)
-	max86900_led_ldo_onoff(data, HRM_LDO_OFF);
-#else
 	err = max86900_regulator_onoff(data, HRM_LDO_OFF);
-#endif
 	if (err < 0)
 		pr_err("max86900_%s - regulator off fail\n", __func__);
 
@@ -1152,17 +1113,13 @@ static int max86900_parse_dt(struct max86900_device_data *data,
 		pr_err("%s - get hrm_int error\n", __func__);
 		return -ENODEV;
 	}
-#if defined(CONFIG_SENSORS_SSP_STM_HESTIA)
-	data->ldo_en = of_get_named_gpio_flags(dNode,
-		"max86900,led_en-gpio", 0, &flags);
-#else
+
 	if (of_property_read_string(dNode, "max86900,sub_ldo4", &data->sub_ldo4) < 0)
 		pr_err("%s - get sub_ldo4 error\n", __func__);
 #if defined(CONFIG_SEC_KACTIVE_PROJECT) || defined(CONFIG_MACH_KSPORTSLTE_SPR)
 	if (of_property_read_string(dNode, "max86900,led_l19", &data->led_l19) < 0)
 		pr_err("%s - get led_l19 error\n", __func__);
 #endif
-#endif /* CONFIG_SENSORS_SSP_STM_HESTIA */
 	return 0;
 }
 
@@ -1243,9 +1200,6 @@ int max86900_probe(struct i2c_client *client, const struct i2c_device_id *id )
 		goto err_of_node;
 	}
 
-#if defined(CONFIG_SENSORS_SSP_STM_HESTIA)
-	max86900_led_ldo_onoff(data, HRM_LDO_ON);
-#else
 	if (data->sub_ldo4 != NULL) {
 		err = max86900_regulator_onoff(data, HRM_LDO_ON);
 		if (err < 0) {
@@ -1254,7 +1208,6 @@ int max86900_probe(struct i2c_client *client, const struct i2c_device_id *id )
 			goto err_of_node;
 		}
 	}
-#endif
 	usleep_range(1000, 1100);
 
 	data->client->addr = MAX86900A_SLAVE_ADDR;
@@ -1367,9 +1320,6 @@ int max86900_probe(struct i2c_client *client, const struct i2c_device_id *id )
 		goto dev_set_drvdata_failed;
 	}
 
-#if defined(CONFIG_SENSORS_SSP_STM_HESTIA)
-	max86900_led_ldo_onoff(data, HRM_LDO_OFF);
-#else
 	if (data->sub_ldo4 != NULL) {
 		err = max86900_regulator_onoff(data, HRM_LDO_OFF);
 		if (err < 0) {
@@ -1378,7 +1328,6 @@ int max86900_probe(struct i2c_client *client, const struct i2c_device_id *id )
 			goto dev_set_drvdata_failed;
 		}
 	}
-#endif
 	pr_info("%s success\n", __func__);
 	goto done;
 
@@ -1396,11 +1345,7 @@ err_sensors_create_symlink:
 err_input_register_device:
 err_input_allocate_device:
 err_of_read_chipid:
-#if defined(CONFIG_SENSORS_SSP_STM_HESTIA)
-	max86900_led_ldo_onoff(data, HRM_LDO_OFF);
-#else
 	max86900_regulator_onoff(data, HRM_LDO_OFF);
-#endif
 err_of_node:
 	mutex_destroy(&data->i2clock);
 	mutex_destroy(&data->activelock);

@@ -29,9 +29,6 @@
 #include "cyttsp4_regs.h"
 #include <linux/i2c.h>
 
-#ifdef CONFIG_SAMSUNG_LPM_MODE
-extern int poweroff_charging;
-#endif
 #define CY_I2C_DATA_SIZE  (2 * 256)
 
 static int cyttsp4_i2c_read_block_data(struct device *dev, u16 addr,
@@ -209,14 +206,7 @@ static struct i2c_driver cyttsp4_i2c_driver = {
 
 static int __init cyttsp4_i2c_init(void)
 {
-	int rc = 0;
-	#ifdef CONFIG_SAMSUNG_LPM_MODE
-		if (poweroff_charging) {
-			pr_notice("%s : LPM Charging Mode!!\n", __func__);
-			return rc;
-		}
-	#endif
-	rc = i2c_add_driver(&cyttsp4_i2c_driver);
+	int rc = i2c_add_driver(&cyttsp4_i2c_driver);
 
 	pr_err("%s: Cypress TTSP v4 I2C Driver (Built %s) rc=%d\n",
 		 __func__, CY_DRIVER_DATE, rc);

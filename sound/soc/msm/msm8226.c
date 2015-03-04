@@ -2516,7 +2516,7 @@ static __devinit int msm8226_asoc_machine_probe(struct platform_device *pdev)
 
 	ret = msm8226_prepare_codec_mclk(card);
 	if (ret)
-		goto err;
+		goto err1;
 
 	mutex_init(&cdc_mclk_mutex);
 	mutex_init(&jack_mutex);
@@ -2637,10 +2637,6 @@ err_lineout_spkr:
 		lineout_en_gpio = -1;
 	}
 
-err_reg_enable:
-	if(earjack_ldo)
-		regulator_put(earjack_ldo);
-
 err_vdd_spkr:
 	if (vdd_spkr_gpio >= 0) {
 		gpio_free(vdd_spkr_gpio);
@@ -2657,6 +2653,9 @@ err:
 err1:
 	devm_kfree(&pdev->dev, pdata);
 
+err_reg_enable:
+	if(earjack_ldo)
+		regulator_put(earjack_ldo);
 	return ret;
 }
 

@@ -317,7 +317,7 @@ struct mdss_dsi_ctrl_pdata {
 	int bklt_max;
 	int new_fps;
 	int pwm_enabled;
-#if defined(CONFIG_CABC_TUNING_HX8394C)
+#if defined(CONFIG_MDNIE_TFT_MSM8X26) && defined(CONFIG_FB_MSM_MDSS_HX8394C_TFT_VIDEO_720P_PANEL)
 	int current_cabc_duty;
 #endif
 	struct pwm_device *pwm_bl;
@@ -335,7 +335,7 @@ struct mdss_dsi_ctrl_pdata {
 	struct dsi_panel_cmds ce_off_cmds;
 	struct dsi_panel_cmds cabc_on_cmds;
 	struct dsi_panel_cmds cabc_off_cmds;
-#if defined(CONFIG_CABC_TUNING_HX8394C)
+#if defined(CONFIG_MDNIE_TFT_MSM8X26) && defined(CONFIG_FB_MSM_MDSS_HX8394C_TFT_VIDEO_720P_PANEL)
 	struct dsi_panel_cmds cabc_duty_72;
 	struct dsi_panel_cmds cabc_duty_74;
 	struct dsi_panel_cmds cabc_duty_78;

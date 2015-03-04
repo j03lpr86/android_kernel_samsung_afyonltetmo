@@ -324,11 +324,15 @@ static void msm_add_sd_in_position(struct msm_sd_subdev *msm_subdev,
 
 int msm_sd_register(struct msm_sd_subdev *msm_subdev)
 {
-	if (WARN_ON(!msm_subdev))
+	if (WARN_ON(!msm_subdev)) {
+		pr_err("FAILED -1\n");
 		return -EINVAL;
+        } 
 
-	if (WARN_ON(!msm_v4l2_dev) || WARN_ON(!msm_v4l2_dev->dev))
+	if (WARN_ON(!msm_v4l2_dev) || WARN_ON(!msm_v4l2_dev->dev)) {
+		pr_err("FAILED -1\n");
 		return -EIO;
+        }
 
 	msm_add_sd_in_position(msm_subdev, &ordered_sd_list);
 	return __msm_sd_register_subdev(&msm_subdev->sd);
@@ -481,7 +485,7 @@ static inline int __msm_sd_close_subdevs(struct msm_sd_subdev *msm_sd,
 static inline int __msm_destroy_session_streams(void *d1, void *d2)
 {
 	struct msm_stream *stream = d1;
-	pr_err("%s: Destroyed here due to list is not empty\n", __func__);
+
 	INIT_LIST_HEAD(&stream->queued_list);
 	return 0;
 }
@@ -677,19 +681,16 @@ static unsigned int msm_poll(struct file *f,
 
 	return rc;
 }
-
 static void msm_print_event_error(struct v4l2_event *event)
 {
 	struct msm_v4l2_event_data *event_data =
-		(struct msm_v4l2_event_data *)&event->u.data[0];
-
+	(struct msm_v4l2_event_data *)&event->u.data[0];
 	pr_err("Evt_type=%x Evt_id=%d Evt_cmd=%x\n", event->type,
 		event->id, event_data->command);
 	pr_err("Evt_session_id=%d Evt_stream_id=%d Evt_arg=%d\n",
-		event_data->session_id, event_data->stream_id,
-		event_data->arg_value);
+	event_data->session_id, event_data->stream_id,
+				event_data->arg_value);
 }
-
 /* something seriously wrong if msm_close is triggered
  *   !!! user space imaging server is shutdown !!!
  */
@@ -704,7 +705,7 @@ int msm_post_event(struct v4l2_event *event, int timeout)
 	struct msm_command *cmd;
 	int session_id, stream_id;
 	unsigned long flags = 0;
-	int wait_count = 0;
+	int wait_count = 2000;
 
 	session_id = event_data->session_id;
 	stream_id = event_data->stream_id;
@@ -743,12 +744,9 @@ int msm_post_event(struct v4l2_event *event, int timeout)
 		pr_err("%s:%d failed\n", __func__, __LINE__);
 		return rc;
 	}
-
-	wait_count = 2000;
-	do { //Apply QC patch for msm_post_event failure
-		/* should wait on session based condition */
+	do {
 		rc = wait_event_interruptible_timeout(cmd_ack->wait,
-		!list_empty_careful(&cmd_ack->command_q.list),
+			!list_empty_careful(&cmd_ack->command_q.list),
 		msecs_to_jiffies(timeout));
 		wait_count--;
 		if(rc != -ERESTARTSYS)
@@ -764,14 +762,13 @@ int msm_post_event(struct v4l2_event *event, int timeout)
 			msm_print_event_error(event);
 			rc = -ETIMEDOUT;
 		}
-		if (rc < 0) {
+	if (rc < 0) {
 			msm_print_event_error(event);
 			pr_err("%s:%d failed\n", __func__, __LINE__);
 			mutex_unlock(&session->lock);
 			return rc;
 		}
 	}
-
 	cmd = msm_dequeue(&cmd_ack->command_q,
 		struct msm_command, list);
 	if (!cmd) {

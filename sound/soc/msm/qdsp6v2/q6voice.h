@@ -806,7 +806,7 @@ struct oem_dha_parm_send_t {
 
 struct oem_dha_parm_send_cmd {
 	struct apr_hdr hdr;
-#ifndef CONFIG_MACH_S3VE3G_EUR
+#if !defined(CONFIG_MACH_S3VE3G_EUR) && !defined(CONFIG_MACH_MS01_EUR_3G)
 	uint32_t mem_handle;
 	uint64_t mem_address;
 	uint32_t mem_size;

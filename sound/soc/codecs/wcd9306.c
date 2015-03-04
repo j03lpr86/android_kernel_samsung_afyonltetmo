@@ -5443,7 +5443,7 @@ static const struct tapan_reg_mask_val tapan_codec_reg_mib2_ctl_init_val[] = {
 };
 #endif
 
-#if defined(CONFIG_MACH_ATLANTICLTE_ATT) || defined(CONFIG_SEC_ATLANTIC3G_COMMON)
+#if defined(CONFIG_MACH_ATLANTICLTE_ATT)
 static const struct tapan_reg_mask_val tapan_codec_reg_hph_ocp_ctl_init_val[] = {
 	{TAPAN_A_RX_HPH_OCP_CTL, 0xEB, 0x6B},
 };
@@ -5508,7 +5508,7 @@ static void tapan_codec_init_reg(struct snd_soc_codec *codec)
 		}
 #endif
 
-#if defined(CONFIG_MACH_ATLANTICLTE_ATT) || defined(CONFIG_SEC_ATLANTIC3G_COMMON)
+#if defined(CONFIG_MACH_ATLANTICLTE_ATT)
 			snd_soc_update_bits(codec,tapan_codec_reg_hph_ocp_ctl_init_val[0].reg,
 					tapan_codec_reg_hph_ocp_ctl_init_val[0].mask,
 					tapan_codec_reg_hph_ocp_ctl_init_val[0].val);

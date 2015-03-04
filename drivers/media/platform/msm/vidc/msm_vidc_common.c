@@ -390,7 +390,8 @@ static int wait_for_sess_signal_receipt(struct msm_vidc_inst *inst,
 		&inst->completions[SESSION_MSG_INDEX(cmd)],
 		msecs_to_jiffies(msm_vidc_hw_rsp_timeout));
 	if (!rc) {
-		dprintk(VIDC_ERR, "Wait interrupted or timeout: %d\n", rc);
+		dprintk(VIDC_ERR, "Wait interrupted or timeout: %d\n",
+				SESSION_MSG_INDEX(cmd));
 		msm_comm_recover_from_session_error(inst);
 		rc = -EIO;
 	} else {
@@ -463,6 +464,9 @@ static void handle_session_init_done(enum command_response cmd, void *data)
 				session_init_done->frame_rate;
 			inst->capability.scale_x = session_init_done->scale_x;
 			inst->capability.scale_y = session_init_done->scale_y;
+			inst->capability.ltr_count =
+				session_init_done->ltr_count;
+			inst->capability.hier_p = session_init_done->hier_p;
 			inst->capability.pixelprocess_capabilities =
 				call_hfi_op(hdev, get_core_capabilities);
 			inst->capability.capability_set = true;
@@ -1116,6 +1120,7 @@ static void handle_fbd(enum command_response cmd, void *data)
 	struct vidc_hal_fbd *fill_buf_done;
 	enum hal_buffer buffer_type;
 	int64_t time_usec = 0;
+	int extra_idx = 0;
 
 	if (!response) {
 		dprintk(VIDC_ERR, "Invalid response from vidc_hal\n");
@@ -1142,6 +1147,10 @@ static void handle_fbd(enum command_response cmd, void *data)
 		vb->v4l2_planes[0].reserved[3] = fill_buf_done->start_y_coord;
 		vb->v4l2_planes[0].reserved[4] = fill_buf_done->frame_width;
 		vb->v4l2_planes[0].reserved[5] = fill_buf_done->frame_height;
+		vb->v4l2_planes[0].reserved[6] =
+			inst->prop.width[CAPTURE_PORT];
+		vb->v4l2_planes[0].reserved[7] =
+			inst->prop.height[CAPTURE_PORT];
 		if (vb->v4l2_planes[0].data_offset > vb->v4l2_planes[0].length)
 			dprintk(VIDC_INFO,
 				"fbd:Overflow data_offset = %d; length = %d\n",
@@ -1162,6 +1171,15 @@ static void handle_fbd(enum command_response cmd, void *data)
 				ns_to_timeval(time_usec * NSEC_PER_USEC);
 		}
 		vb->v4l2_buf.flags = 0;
+		extra_idx =
+			EXTRADATA_IDX(inst->fmts[CAPTURE_PORT]->num_planes);
+		if (extra_idx && (extra_idx < VIDEO_MAX_PLANES)) {
+			vb->v4l2_planes[extra_idx].m.userptr =
+				(unsigned long)fill_buf_done->extra_data_buffer;
+			vb->v4l2_planes[extra_idx].bytesused =
+				vb->v4l2_planes[extra_idx].length;
+			vb->v4l2_planes[extra_idx].data_offset = 0;
+		}
 
 		handle_dynamic_buffer(inst, (u32)fill_buf_done->packet_buffer1,
 					fill_buf_done->flags1);
@@ -1181,6 +1199,8 @@ static void handle_fbd(enum command_response cmd, void *data)
 			vb->v4l2_buf.flags |= V4L2_QCOM_BUF_DATA_CORRUPT;
 		if (fill_buf_done->flags1 & HAL_BUFFERFLAG_DROP_FRAME)
 			vb->v4l2_buf.flags |= V4L2_QCOM_BUF_DROP_FRAME;
+		if (fill_buf_done->flags1 & HAL_BUFFERFLAG_MBAFF)
+			vb->v4l2_buf.flags |= V4L2_MSM_BUF_FLAG_MBAFF;
 		switch (fill_buf_done->picture_type) {
 		case HAL_PICTURE_IDR:
 			vb->v4l2_buf.flags |= V4L2_QCOM_BUF_FLAG_IDRFRAME;
@@ -1216,6 +1236,13 @@ static void handle_fbd(enum command_response cmd, void *data)
 		fill_buf_done->start_y_coord, fill_buf_done->frame_width,
 		fill_buf_done->frame_height, fill_buf_done->picture_type);
 
+		if (extra_idx && (extra_idx < VIDEO_MAX_PLANES)) {
+			dprintk(VIDC_DBG,
+			"extradata: userptr = %p;  bytesused = %d; length = %d\n",
+			(u8 *)vb->v4l2_planes[extra_idx].m.userptr,
+			vb->v4l2_planes[extra_idx].bytesused,
+			vb->v4l2_planes[extra_idx].length);
+		}
 		mutex_lock(&inst->bufq[CAPTURE_PORT].lock);
 		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
 		mutex_unlock(&inst->bufq[CAPTURE_PORT].lock);
@@ -1451,7 +1478,8 @@ static int msm_comm_unset_ocmem(struct msm_vidc_core *core)
 		&core->completions[SYS_MSG_INDEX(RELEASE_RESOURCE_DONE)],
 		msecs_to_jiffies(msm_vidc_hw_rsp_timeout));
 	if (!rc) {
-		dprintk(VIDC_ERR, "Wait interrupted or timeout: %d\n", rc);
+		dprintk(VIDC_ERR, "Wait interrupted or timeout: %d\n",
+				SYS_MSG_INDEX(RELEASE_RESOURCE_DONE));
 		rc = -EIO;
 	}
 release_ocmem_failed:
@@ -1473,7 +1501,8 @@ static int msm_comm_init_core_done(struct msm_vidc_inst *inst)
 		&core->completions[SYS_MSG_INDEX(SYS_INIT_DONE)],
 		msecs_to_jiffies(msm_vidc_hw_rsp_timeout));
 	if (!rc) {
-		dprintk(VIDC_ERR, "Wait interrupted or timeout: %d\n", rc);
+		dprintk(VIDC_ERR, "Wait interrupted or timeout: %d\n",
+				SYS_MSG_INDEX(SYS_INIT_DONE));
 		rc = -EIO;
 		goto exit;
 	} else {
@@ -2565,7 +2594,8 @@ int msm_comm_try_get_bufreqs(struct msm_vidc_inst *inst)
 		msecs_to_jiffies(msm_vidc_hw_rsp_timeout));
 	if (!rc) {
 		dprintk(VIDC_ERR,
-			"Wait interrupted or timeout: %d\n", rc);
+			"Wait interrupted or timeout: %d\n",
+			SESSION_MSG_INDEX(SESSION_PROPERTY_INFO));
 		inst->state = MSM_VIDC_CORE_INVALID;
 		msm_comm_recover_from_session_error(inst);
 		rc = -EIO;
@@ -3132,6 +3162,18 @@ enum hal_extradata_id msm_comm_get_hal_extradata_index(
 	case V4L2_MPEG_VIDC_EXTRADATA_MPEG2_SEQDISP:
 		ret = HAL_EXTRADATA_MPEG2_SEQDISP;
 		break;
+	case V4L2_MPEG_VIDC_EXTRADATA_FRAME_QP:
+		ret = HAL_EXTRADATA_FRAME_QP;
+		break;
+	case V4L2_MPEG_VIDC_EXTRADATA_FRAME_BITS_INFO:
+		ret = HAL_EXTRADATA_FRAME_BITS_INFO;
+		break;
+	case V4L2_MPEG_VIDC_EXTRADATA_LTR:
+		ret = HAL_EXTRADATA_LTR_INFO;
+		break;
+	case V4L2_MPEG_VIDC_EXTRADATA_METADATA_MBI:
+		ret = HAL_EXTRADATA_METADATA_MBI;
+		break;
 	default:
 		dprintk(VIDC_WARN, "Extradata not found: %d\n", index);
 		break;
@@ -3299,10 +3341,24 @@ int msm_vidc_check_session_supported(struct msm_vidc_inst *inst)
 
 	rc = msm_vidc_load_supported(inst);
 	if (!rc && inst->capability.capability_set) {
-		rc = call_hfi_op(hdev, capability_check,
-			inst->fmts[OUTPUT_PORT]->fourcc,
-			inst->prop.width[CAPTURE_PORT], &capability->width.max,
-			&capability->height.max);
+		if (inst->prop.width[CAPTURE_PORT] < capability->width.min ||
+			inst->prop.height[CAPTURE_PORT] <
+			capability->height.min) {
+			dprintk(VIDC_ERR,
+				"Unsupported WxH = (%u)x(%u), min supported is - (%u)x(%u)\n",
+				inst->prop.width[CAPTURE_PORT],
+				inst->prop.height[CAPTURE_PORT],
+				capability->width.min,
+				capability->height.min);
+			rc = -ENOTSUPP;
+		}
+		if (!rc) {
+			rc = call_hfi_op(hdev, capability_check,
+				inst->fmts[OUTPUT_PORT]->fourcc,
+				inst->prop.width[CAPTURE_PORT],
+				&capability->width.max,
+				&capability->height.max);
+		}
 
 		if (!rc && (inst->prop.height[CAPTURE_PORT]
 			* inst->prop.width[CAPTURE_PORT] >
@@ -3320,7 +3376,6 @@ int msm_vidc_check_session_supported(struct msm_vidc_inst *inst)
 		inst->state = MSM_VIDC_CORE_INVALID;
 		mutex_unlock(&inst->sync_lock);
 		msm_vidc_queue_v4l2_event(inst, V4L2_EVENT_MSM_VIDC_SYS_ERROR);
-		wake_up(&inst->kernel_event_queue);
 	}
 	return rc;
 }
@@ -3371,7 +3426,7 @@ int msm_comm_recover_from_session_error(struct msm_vidc_inst *inst)
 		msecs_to_jiffies(msm_vidc_hw_rsp_timeout));
 	if (!rc) {
 		dprintk(VIDC_ERR, "%s: Wait interrupted or timeout: %d\n",
-			__func__, rc);
+			__func__, SESSION_MSG_INDEX(SESSION_ABORT_DONE));
 		msm_comm_generate_sys_error(inst);
 	} else
 		change_inst_state(inst, MSM_VIDC_CLOSE_DONE);

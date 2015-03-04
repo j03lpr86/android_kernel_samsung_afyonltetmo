@@ -96,7 +96,7 @@ static void get_step_det_sensordata(char *pchRcvDataFrame, int *iDataIdx,
 static void get_light_sensordata(char *pchRcvDataFrame, int *iDataIdx,
 	struct sensor_value *sensorsdata)
 {
-#if defined(CONFIG_SENSORS_SSP_TMG399X) || defined(CONFIG_SENSORS_SSP_TMD37823)
+#ifdef CONFIG_SENSORS_SSP_TMG399X
 	memcpy(sensorsdata, pchRcvDataFrame + *iDataIdx, 10);
 	*iDataIdx += 10;
 #else
@@ -129,37 +129,17 @@ static void get_gesture_sensordata(char *pchRcvDataFrame, int *iDataIdx,
 static void get_proximity_sensordata(char *pchRcvDataFrame, int *iDataIdx,
 	struct sensor_value *sensorsdata)
 {
-#if defined(CONFIG_SENSORS_SSP_TMG399X)
 	memset(&sensorsdata->prox[0], 0, 1);
 	memcpy(&sensorsdata->prox[0], pchRcvDataFrame + *iDataIdx, 2);
+	//memcpy(&sensorsdata->prox[1], pchRcvDataFrame + *iDataIdx + 1, 1);
 	*iDataIdx += 2;
-#else
-	memset(&sensorsdata->prox[0], 0, 2);
-	memcpy(&sensorsdata->prox[0], pchRcvDataFrame + *iDataIdx, 1);
-	memcpy(&sensorsdata->prox[1], pchRcvDataFrame + *iDataIdx + 1, 2);
-	*iDataIdx += 3;
-#endif
 }
 
-#ifdef CONFIG_SENSORS_SSP_UV
-static void get_uv_sensordata(char *pchRcvDataFrame, int *iDataIdx,
-	struct sensor_value *sensorsdata)
-{
-	memset(&sensorsdata->uv, 0, 1);
-	memcpy(&sensorsdata->uv, pchRcvDataFrame + *iDataIdx, 1);
-	*iDataIdx += 1;
-}
-#endif
 static void get_proximity_rawdata(char *pchRcvDataFrame, int *iDataIdx,
 	struct sensor_value *sensorsdata)
 {
-#if defined(CONFIG_SENSORS_SSP_TMG399X)
 	memcpy(&sensorsdata->prox[0], pchRcvDataFrame + *iDataIdx, 1);
 	*iDataIdx += 1;
-#else
-	memcpy(&sensorsdata->prox[0], pchRcvDataFrame + *iDataIdx, 2);
-	*iDataIdx += 2;
-#endif
 }
 
 #ifdef CONFIG_SENSORS_SSP_SHTC1
@@ -324,9 +304,6 @@ void initialize_function_pointer(struct ssp_data *data)
 	data->get_sensor_data[TEMPERATURE_HUMIDITY_SENSOR] =
 		get_temp_humidity_sensordata;
 #endif
-#ifdef CONFIG_SENSORS_SSP_UV
-	data->get_sensor_data[UV_SENSOR] = get_uv_sensordata;
-#endif
 	data->get_sensor_data[ROTATION_VECTOR] = get_rot_sensordata;
 	data->get_sensor_data[GAME_ROTATION_VECTOR] = get_rot_sensordata;
 	data->get_sensor_data[STEP_DETECTOR] = get_step_det_sensordata;
@@ -354,9 +331,6 @@ void initialize_function_pointer(struct ssp_data *data)
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 	data->report_sensor_data[TEMPERATURE_HUMIDITY_SENSOR] =
 		report_temp_humidity_data;
-#endif
-#ifdef CONFIG_SENSORS_SSP_UV
-	data->report_sensor_data[UV_SENSOR] = report_uv_data;
 #endif
 	data->report_sensor_data[ROTATION_VECTOR] = report_rot_data;
 	data->report_sensor_data[GAME_ROTATION_VECTOR] = report_game_rot_data;

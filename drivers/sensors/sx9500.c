@@ -62,9 +62,9 @@
 #define CSX_STATUS_REG           SX9500_TCHCMPSTAT_TCHSTAT0_FLAG
 #endif
 
-#define LIMIT_PROXOFFSET                3880 /* 45 pF */
+#define LIMIT_PROXOFFSET                3481 /* 40pF */
 #define LIMIT_PROXUSEFUL                10000
-#define STANDARD_CAP_MAIN               450000
+#define STANDARD_CAP_MAIN               400000
 
 #define DEFAULT_INIT_TOUCH_THRESHOLD    2000
 #define DEFAULT_NORMAL_TOUCH_THRESHOLD  17

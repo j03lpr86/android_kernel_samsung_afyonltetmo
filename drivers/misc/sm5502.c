@@ -1529,9 +1529,9 @@ err_create_file_state:
 fail2:
 	if (client->irq)
 		free_irq(client->irq, usbsw);
+fail1:
 	mutex_destroy(&usbsw->mutex);
 	i2c_set_clientdata(client, NULL);
-fail1:
 	kfree(usbsw);
 	return ret;
 }

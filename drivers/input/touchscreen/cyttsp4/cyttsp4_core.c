@@ -111,6 +111,7 @@ static inline const char* cy_cmd_str(u8 mode, u8 cmd)
 	default:
 		return cy_op_cmd_str_[7];
 	}
+	return cy_op_cmd_str_[7];
 }
 #endif//DEBUG
 
@@ -1225,11 +1226,9 @@ static irqreturn_t cyttsp4_irq(int irq, void *handle)
 		call_atten_cb(cd, CY_ATTEN_IRQ, cur_mode);
 
 		/* switch to bootloader */
-		if (cd->mode != CY_MODE_BOOTLOADER) {
+		if (cd->mode != CY_MODE_BOOTLOADER)
 			dev_dbg(dev, "%s: restart switch to bl m=%s -> m=%s\n",
 			__func__, mode2str(cd->mode), mode2str(cur_mode));
-			cd->heartbeat_count = 0;
-		}
 
 		/* catch operation->bl glitch */
 		if (cd->mode != CY_MODE_BOOTLOADER
@@ -1243,11 +1242,8 @@ static irqreturn_t cyttsp4_irq(int irq, void *handle)
 		/* Recover if stuck in bootloader idle mode */
 		if (cd->mode == CY_MODE_BOOTLOADER) {
 			if (IS_BOOTLOADER_IDLE(mode[0], mode[1])) {
-				dev_dbg(dev, "%s: heartbeat_count %d\n", __func__,
-					cd->heartbeat_count);
 				if (cd->heartbeat_count > 3) {
 					cd->heartbeat_count = 0;
-					dev_dbg(dev, "%s: stuck in bootloader\n", __func__);
 					cyttsp4_queue_startup_(cd);
 					goto cyttsp4_irq_exit;
 				}
@@ -1276,9 +1272,9 @@ static irqreturn_t cyttsp4_irq(int irq, void *handle)
 				cat_masked_cmd !=
 					CY_CMD_CAT_RETRIEVE_PANEL_SCAN &&
 				cat_masked_cmd != CY_CMD_CAT_EXEC_PANEL_SCAN)
-			dev_info(cd->dev,
+			/*dev_info(cd->dev,
 				"%s: cyttsp4_CaT_IRQ=%02X %02X %02X\n",
-				__func__, mode[0], mode[1], mode[2]);
+				__func__, mode[0], mode[1], mode[2]);*/
 		dev_vdbg(dev, "%s: CaT\n", __func__);
 		break;
 	case CY_HST_SYSINFO:
@@ -1696,8 +1692,9 @@ static int set_mode(struct cyttsp4_core_data *cd, int new_mode)
 	}
 
 	/* change mode */
-	dev_dbg(cd->dev, "%s: new_dev_mode=%02X new_mode=%s\n",
-			__func__, new_dev_mode, mode2str(new_mode));
+	dev_dbg(cd->dev, "%s: %s=%p new_dev_mode=%02X new_mode=%s\n",
+			__func__, "have exclusive", cd->exclusive_dev,
+			new_dev_mode, mode2str(new_mode));
 
 	mutex_lock(&cd->system_lock);
 	rc = cyttsp4_adap_read(cd, CY_REG_BASE, &mode, sizeof(mode));
@@ -2767,35 +2764,10 @@ int cyttsp4_request_get_parameter_(struct device *dev,
 				__func__, rc);
 		return rc;
 	}
+	
 	rc = cyttsp4_get_parameter(cd, param_id, param_value);
 	if (rc < 0)
-		dev_err(dev, "%s: Error on get_parameter r=%d\n",
-						__func__, rc);
-
-	rc1 = release_exclusive(cd, (void *)dev);
-	if (rc1 < 0) {
-		dev_err(dev, "%s: Error on release exclusive r=%d\n",
-				__func__, rc1);
-	}
-
-	return rc;
-}
-
-int cyttsp4_request_set_parameter_(struct device *dev,
-	u8 param_id, u8 param_size, u32 param_value)
-{
-	struct cyttsp4_core_data *cd = dev_get_drvdata(dev);
-	int rc, rc1;
-
-	rc = request_exclusive(cd, (void *)dev, CY_CORE_REQUEST_EXCLUSIVE_TIMEOUT);
-	if (rc < 0) {
-		dev_err(dev, "%s: Error on request exclusive r=%d\n",
-				__func__, rc);
-		return rc;
-	}
-	rc = cyttsp4_set_parameter(cd, param_id, param_size, param_value);
-	if (rc < 0)
-		dev_err(dev, "%s: Error on set_parameter r=%d\n",
+		dev_err(dev, "%s: Error on cyttsp4_get_sysinfo_regs r=%d\n",
 						__func__, rc);
 
 	rc1 = release_exclusive(cd, (void *)dev);
@@ -3376,37 +3348,30 @@ static void cyttsp4_watchdog_work(struct work_struct *work)
 		return;
 	}
 
-	rc = request_exclusive(cd, cd->dev, 1);
-	if (rc < 0) {
-		dev_vdbg(cd->dev, "%s: fail get exclusive ex=%p own=%p\n",
-				__func__, cd->exclusive_dev, cd->dev);
-		goto exit;
-	}
+	mutex_lock(&cd->system_lock);
 	rc = cyttsp4_adap_read(cd, CY_REG_BASE, &mode, sizeof(mode));
 	if (rc) {
 		dev_err(cd->dev, "%s: failed to access device r=%d\n",
 			__func__, rc);
 		restart = true;
-		goto release;
+		goto exit;
 	}
 
 	dev_vdbg(cd->dev, "%s mode[0-1]:0x%X 0x%X\n", __func__,
 			mode[0], mode[1]);
+			
 	if (IS_BOOTLOADER(mode[0], mode[1])) {
 		dev_err(cd->dev, "%s: device found in bootloader mode\n",
 			__func__);
 		restart = true;
+		goto exit;
 	}
-release:
-	if (release_exclusive(cd, cd->dev) < 0)
-		dev_err(cd->dev, "%s: fail to release exclusive\n", __func__);
-	else
-		dev_vdbg(cd->dev, "%s: pass release exclusive\n", __func__);
 exit:
 	if (restart)
 		cyttsp4_queue_startup_(cd);
 	else
 		cyttsp4_start_wd_timer(cd);
+	mutex_unlock(&cd->system_lock);
 }
 #endif
 
@@ -3587,8 +3552,7 @@ static int cyttsp4_core_sleep_(struct cyttsp4_core_data *cd)
 	return rc;
 }
 
-static int cyttsp4_core_sleep(struct cyttsp4_core_data *cd,
-	bool _disable_irq)
+static int cyttsp4_core_sleep(struct cyttsp4_core_data *cd)
 {
 	int rc;
 
@@ -3598,14 +3562,6 @@ static int cyttsp4_core_sleep(struct cyttsp4_core_data *cd,
 		dev_err(cd->dev, "%s: fail get exclusive ex=%p own=%p\n",
 				__func__, cd->exclusive_dev, cd->dev);
 		return 0;
-	}
-
-	if (cd->cpdata->flags & CY_CORE_FLAG_POWEROFF_ON_SLEEP) {
-		if (_disable_irq && cd->irq_enabled) {
-			cd->irq_enabled = false;
-			disable_irq_nosync(cd->irq);
-			dev_dbg(cd->dev, "%s: irq disabled\n", __func__);
-		}
 	}
 
 	rc = cyttsp4_core_sleep_(cd);
@@ -3785,8 +3741,7 @@ static int cyttsp4_core_wake_(struct cyttsp4_core_data *cd)
 	return 0;
 }
 
-static int cyttsp4_core_wake(struct cyttsp4_core_data *cd,
-	bool _enable_irq)
+static int cyttsp4_core_wake(struct cyttsp4_core_data *cd)
 {
 	int rc;
 
@@ -3798,13 +3753,6 @@ static int cyttsp4_core_wake(struct cyttsp4_core_data *cd,
 		return 0;
 	}
 
-	if (cd->cpdata->flags & CY_CORE_FLAG_POWEROFF_ON_SLEEP) {
-		if (_enable_irq && !cd->irq_enabled) {
-			cd->irq_enabled = true;
-			enable_irq(cd->irq);
-			dev_dbg(cd->dev, "%s: irq enabled\n", __func__);
-		}
-	}
 	rc = cyttsp4_core_wake_(cd);
 
 	if (release_exclusive(cd, cd->dev) < 0)
@@ -4093,7 +4041,6 @@ static void cyttsp4_startup_work_function(struct work_struct *work)
 		struct cyttsp4_core_data, startup_work);
 	int rc;
 
-	dev_dbg(cd->dev, "%s: start\n", __func__);
 	/*
 	 * Force clear exclusive access
 	 * startup queue is called for abnormal case,
@@ -4135,7 +4082,7 @@ static int cyttsp4_core_rt_suspend(struct device *dev)
 	struct cyttsp4_core_data *cd = dev_get_drvdata(dev);
 	int rc;
 
-	rc = cyttsp4_core_sleep(cd, 0);
+	rc = cyttsp4_core_sleep(cd);
 	if (rc < 0) {
 		dev_err(dev, "%s: Error on sleep\n", __func__);
 		return -EAGAIN;
@@ -4148,7 +4095,7 @@ static int cyttsp4_core_rt_resume(struct device *dev)
 	struct cyttsp4_core_data *cd = dev_get_drvdata(dev);
 	int rc;
 
-	rc = cyttsp4_core_wake(cd, 0);
+	rc = cyttsp4_core_wake(cd);
 	if (rc < 0) {
 		dev_err(dev, "%s: Error on wake\n", __func__);
 		return -EAGAIN;
@@ -4163,8 +4110,15 @@ int cyttsp4_core_suspend(struct device *dev)
 {
 	struct cyttsp4_core_data *cd = dev_get_drvdata(dev);
 
-	dev_dbg(dev, "%s:\n", __func__);
-	cyttsp4_core_sleep(cd, 1);
+	if (cd->cpdata->flags & CY_CORE_FLAG_POWEROFF_ON_SLEEP) {
+		if (cd->irq_enabled) {
+			cd->irq_enabled = false;
+			disable_irq_nosync(cd->irq);
+			dev_dbg(dev, "%s: irq disabled\n", __func__);
+		}
+	}
+
+	cyttsp4_core_sleep(cd);
 
 	if (!(cd->cpdata->flags & CY_CORE_FLAG_WAKE_ON_GESTURE))
 		return 0;
@@ -4191,7 +4145,6 @@ int cyttsp4_core_resume(struct device *dev)
 {
 	struct cyttsp4_core_data *cd = dev_get_drvdata(dev);
 
-	dev_dbg(dev, "%s:\n", __func__);
 	if (!(cd->cpdata->flags & CY_CORE_FLAG_WAKE_ON_GESTURE))
 		goto exit;
 
@@ -4201,17 +4154,25 @@ int cyttsp4_core_resume(struct device *dev)
 	}
 
 	if (device_may_wakeup(dev)) {
-		dev_dbg(dev, "%s Device MAY wakeup\n", __func__);
+		dev_info(dev, "%s Device MAY wakeup\n", __func__);
 		if (cd->irq_wake) {
 			disable_irq_wake(cd->irq);
 			cd->irq_wake = 0;
 		}
 	} else {
-		dev_dbg(dev, "%s Device may NOT wakeup\n", __func__);
+		dev_info(dev, "%s Device may NOT wakeup\n", __func__);
 	}
 
 exit:
-	cyttsp4_core_wake(cd, 1);
+
+	if (cd->cpdata->flags & CY_CORE_FLAG_POWEROFF_ON_SLEEP) {
+		if (!cd->irq_enabled) {
+			cd->irq_enabled = true;
+			enable_irq(cd->irq);
+			dev_dbg(dev, "%s: irq enabled\n", __func__);
+		}
+	}
+	cyttsp4_core_wake(cd);
 
 	return 0;
 }
@@ -4434,7 +4395,7 @@ static ssize_t cyttsp4_drv_debug_store(struct device *dev,
 	switch (value) {
 	case CY_DBG_SUSPEND:
 		dev_info(dev, "%s: SUSPEND (cd=%p)\n", __func__, cd);
-		rc = cyttsp4_core_sleep(cd, 0);
+		rc = cyttsp4_core_sleep(cd);
 		if (rc)
 			dev_err(dev, "%s: Suspend failed rc=%d\n",
 				__func__, rc);
@@ -4444,7 +4405,7 @@ static ssize_t cyttsp4_drv_debug_store(struct device *dev,
 
 	case CY_DBG_RESUME:
 		dev_info(dev, "%s: RESUME (cd=%p)\n", __func__, cd);
-		rc = cyttsp4_core_wake(cd, 0);
+		rc = cyttsp4_core_wake(cd);
 		if (rc)
 			dev_err(dev, "%s: Resume failed rc=%d\n",
 				__func__, rc);
@@ -4512,7 +4473,7 @@ static ssize_t cyttsp4_easy_wakeup_gesture_store(struct device *dev,
 	if (ret < 0)
 		return ret;
 
-	if (value > 0xFF)
+	if (value > 0xFF && value < 0)
 		return -EINVAL;
 
 	pm_runtime_get_sync(dev);

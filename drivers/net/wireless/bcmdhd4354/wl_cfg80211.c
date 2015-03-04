@@ -21,7 +21,7 @@
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: wl_cfg80211.c 477292 2014-05-13 04:40:53Z $
+ * $Id: wl_cfg80211.c 476678 2014-05-09 14:46:37Z $
  */
 /* */
 #include <typedefs.h>
@@ -11909,12 +11909,6 @@ static bool
 wl_cfg80211_valid_chanspec_p2p(chanspec_t chanspec)
 {
 	bool valid = false;
-
-	if (ioctl_version != 1) {
-		if ((chanspec = wl_chspec_to_legacy(chanspec)) == INVCHANSPEC) {
-			return valid;
-		}
-	}
 
 	/* channel 1 to 14 */
 	if ((chanspec >= 0x2b01) && (chanspec <= 0x2b0e)) {

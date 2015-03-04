@@ -316,12 +316,6 @@ static void print_sensordata(struct ssp_data *data, unsigned int uSensor)
 			data->buf[uSensor].z, get_msdelay(data->adDelayBuf[uSensor]));
 		break;
 #endif
-#ifdef CONFIG_SENSORS_SSP_UV
-	case UV_SENSOR:
-		ssp_dbg("[SSP] %u : %u(%ums)\n", uSensor, data->buf[uSensor].uv,
-			get_msdelay(data->adDelayBuf[uSensor]));
-		break;
-#endif
 	case LIGHT_SENSOR:
 #if defined(CONFIG_SENSORS_SSP_TMG399X) || defined(CONFIG_SENSORS_SSP_TMD37823)
 		ssp_dbg("[SSP] %u : %u, %u, %u, %u, %u, %u (%ums)\n", uSensor,

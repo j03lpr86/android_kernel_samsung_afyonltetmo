@@ -10,6 +10,9 @@
 #ifdef CONFIG_SEC_DEBUG_TSP_LOG
 #include <mach/sec_debug.h>
 #endif
+#ifdef CONFIG_INPUT_BOOSTER
+#include <linux/input/input_booster.h>
+#endif
 
 #ifdef CONFIG_SEC_DEBUG_TSP_LOG
 #define tsp_debug_dbg(mode, dev, fmt, ...)	\
@@ -42,9 +45,12 @@
 		dev_err(dev, fmt, ## __VA_ARGS__); \
 })
 #else
-#define tsp_debug_dbg(mode, dev, fmt, ...)	dev_dbg(dev, fmt, ## __VA_ARGS__)
-#define tsp_debug_info(mode, dev, fmt, ...)	dev_info(dev, fmt, ## __VA_ARGS__)
-#define tsp_debug_err(mode, dev, fmt, ...)	dev_err(dev, fmt, ## __VA_ARGS__)
+//#define tsp_debug_dbg(mode, dev, fmt, ...)	dev_dbg(dev, fmt, ## __VA_ARGS__)
+//#define tsp_debug_info(mode, dev, fmt, ...)	dev_info(dev, fmt, ## __VA_ARGS__)
+//#define tsp_debug_err(mode, dev, fmt, ...)	dev_err(dev, fmt, ## __VA_ARGS__)
+#define tsp_debug_dbg(mode, dev, fmt, ...)	pr_err(fmt, ## __VA_ARGS__)
+#define tsp_debug_info(mode, dev, fmt, ...)	pr_err(fmt, ## __VA_ARGS__)
+#define tsp_debug_err(mode, dev, fmt, ...)	pr_err(fmt, ## __VA_ARGS__)
 #endif
 
 #define USE_OPEN_CLOSE
@@ -53,10 +59,6 @@
 #include <linux/cpufreq.h>
 #define TOUCH_BOOSTER_DVFS
 
-#ifdef CONFIG_SEC_S_PROJECT
-#define DVFS_STAGE_NINTH	9
-#define DVFS_STAGE_PENTA	5
-#endif
 #define DVFS_STAGE_TRIPLE       3
 #define DVFS_STAGE_DUAL         2
 #define DVFS_STAGE_SINGLE       1
@@ -66,11 +68,6 @@
 #ifdef TOUCH_BOOSTER_DVFS
 #define TOUCH_BOOSTER_OFF_TIME	500
 #define TOUCH_BOOSTER_CHG_TIME	300//130
-
-#ifdef CONFIG_SEC_S_PROJECT
-#define INPUT_BOOSTER_HIGH_OFF_TIME_TSP		1000
-#define INPUT_BOOSTER_HIGH_CHG_TIME_TSP		500
-#endif
 #endif
 
 #ifdef USE_OPEN_DWORK
@@ -137,20 +134,8 @@
 #define FTS_CMD_HOVER_OFF           0x94
 #define FTS_CMD_HOVER_ON            0x95
 
-#if defined(CONFIG_SEC_S_PROJECT)
-#define FTS_CMD_FAST_SCAN           0x98
-#define FTS_CMD_SLOW_SCAN           0x99
-
-#define FTS_CMD_FLIPCOVER_OFF		0x9C
-#define FTS_CMD_FLIPCOVER_ON		0x9D
-#define FTS_RETRY_COUNT		10
-
-#else
 #define FTS_CMD_FLIPCOVER_OFF		0x96
 #define FTS_CMD_FLIPCOVER_ON		0x97
-#define FTS_RETRY_COUNT		30
-
-#endif
 
 #define FTS_CMD_KEY_SENSE_ON		0x9B
 
@@ -184,6 +169,7 @@
 
 #define TSP_BUF_SIZE 1024
 #define CMD_STR_LEN 32
+#define CMD_RESULT_STR_LEN 512
 #define CMD_PARAM_NUM 8
 
 #define RAW_MAX	3750
@@ -219,7 +205,6 @@ struct fts_ts_platform_data {
 #if defined(CONFIG_SEC_S_PROJECT)
 	int scl_gpio;
 	int sda_gpio;
-	int tsp_id;
 	const char *name_of_supply;
 #endif
 };
@@ -253,8 +238,7 @@ struct fts_ts_info {
 	u8 cmd_state;
 	char cmd[CMD_STR_LEN];
 	int cmd_param[CMD_PARAM_NUM];
-	char *cmd_result;
-	int cmd_buffer_size;
+	char cmd_result[CMD_RESULT_STR_LEN];
 	struct mutex cmd_lock;
 	bool cmd_is_running;
 	int SenseChannelLength;
@@ -311,7 +295,6 @@ struct fts_ts_info {
 	int (*fts_get_noise_param_address) (struct fts_ts_info *info);
 #endif
 
-	struct mutex i2c_mutex;
 	struct mutex device_mutex;
 	bool touch_stopped;
 	bool reinit_done;

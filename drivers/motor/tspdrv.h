@@ -311,10 +311,6 @@ extern void max77803_vibtonz_en(bool en);
 extern void max77804k_vibtonz_en(bool en);
 #elif defined(CONFIG_MOTOR_DRV_MAX77828)
 extern void max77828_vibtonz_en(bool en);
-#elif defined(CONFIG_MOTOR_DRV_MAX77888)
-void max77888_gpio_en(bool);
-void max77888_vibtonz_en(bool);
-static int32_t max77888_gpio_init(void);
 #elif defined(CONFIG_MOTOR_DRV_DRV2603)
 void drv2603_gpio_en(bool);
 static int32_t drv2603_gpio_init(void);

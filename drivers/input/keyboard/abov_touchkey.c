@@ -47,8 +47,7 @@
 #define ABOV_PCB_VER		0x02
 #define ABOV_COMMAND		0x03
 #define ABOV_THRESHOLD		0x04
-#define ABOV_TH_RECENT		0x04
-#define ABOV_TH_BACK		0x05
+#define ABOV_SENS			0x05
 #define ABOV_SETIDAC		0x06
 #define ABOV_DIFFDATA		0x0A
 #define ABOV_RAWDATA		0x0E
@@ -70,10 +69,10 @@
 
 struct device *sec_touchkey;
 
-#define FW_VERSION 0x12
+#define FW_VERSION 0xC
 
-#define FW_CHECKSUM_H 0x53
-#define FW_CHECKSUM_L 0x44
+#define FW_CHECKSUM_H 0x95
+#define FW_CHECKSUM_L 0x9A
 #define TK_FW_PATH_BIN "abov/abov_tk.fw"
 #define TK_FW_PATH_SDCARD "/sdcard/abov_fw.bin"
 
@@ -403,29 +402,15 @@ static ssize_t touchkey_threshold_show(struct device *dev,
 {
 	struct abov_tk_info *info = dev_get_drvdata(dev);
 	struct i2c_client *client = info->client;
-	u8 r_buf1, r_buf2;
+	u8 r_buf;
 	int ret;
 
-	if (info->fw_ver < 0x12) {
-		ret = abov_tk_i2c_read(client, ABOV_THRESHOLD, &r_buf1, 1);
-		if (ret < 0) {
-			dev_err(&client->dev, "%s fail(%d)\n", __func__, ret);
-			r_buf1 = 0;
-		}
-		return sprintf(buf, "%d\n", r_buf1);
-	} else {
-		ret = abov_tk_i2c_read(client, ABOV_TH_RECENT, &r_buf1, 1);
-		if (ret < 0) {
-			dev_err(&client->dev, "%s recent fail(%d)\n", __func__, ret);
-			r_buf1 = 0;
-		}
-		ret = abov_tk_i2c_read(client, ABOV_TH_BACK, &r_buf2, 1);
-		if (ret < 0) {
-			dev_err(&client->dev, "%s back fail(%d)\n", __func__, ret);
-			r_buf2 = 0;
-		}
-		return sprintf(buf, "%d,%d\n", r_buf1, r_buf2);
+	ret = abov_tk_i2c_read(client, ABOV_THRESHOLD, &r_buf, 1);
+	if (ret < 0) {
+		dev_err(&client->dev, "%s fail(%d)\n", __func__, ret);
+		r_buf = 0;
 	}
+	return sprintf(buf, "%d\n", r_buf);
 }
 
 static void get_diff_data(struct abov_tk_info *info)

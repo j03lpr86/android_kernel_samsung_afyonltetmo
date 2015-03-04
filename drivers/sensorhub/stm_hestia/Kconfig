@@ -152,13 +152,6 @@ config SENSORS_MAX86900
 	  This driver can also be built as a module.  If so, the module
 	  will be called max86900.
 
-config SENSORS_MLX90615
-	tristate "MLX90615 body temperature sensor support"
-	depends on I2C
-	default n
-	help
-	  bodytemp bodytemp bodytemp bodytemp bodytemp bodytemp
-
 config SENSORS_SSP_BOUNCE_FIRMWARE
 	tristate "Sensors ssp BOUNCE_FIRMWARE"
 	default n
@@ -167,14 +160,5 @@ config SENSORS_SSP_BOUNCE_FIRMWARE
 	  This is for Bounce firmware support.
           If you say yes here you get bounce firmware support.
 	  If you say no here bounce firmware will not be supported.
-
-config SENSORS_SSP_UV
-	tristate "Sensors ssp UV"
-	default n
-	depends on SENSORS_SSP
-	help
-	  This is for UV Sensor device driver.
-          If you say yes here you get uv sensor support.
-	  If you say no here uv sensor will not be supported.
 
 source "drivers/sensorhub/stm_hestia/factory/Kconfig"

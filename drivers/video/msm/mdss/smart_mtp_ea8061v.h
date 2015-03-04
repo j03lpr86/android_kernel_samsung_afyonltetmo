@@ -62,10 +62,7 @@ Copyright (C) 2012, Samsung Electronics. All rights reserved.
 #define EVT2_EA8061V_REV_D 0x96
 #define EVT2_EA8061V_REV_E 0x97
 #define EVT0_EA8061V_KMINI_REV_A 0x84
-
-/* EA8061 ldi id3 */
-#define EVT2_EA8061_HESTIA_REV_I 0x47
-#define EVT2_EA8061_HESTIA_REV_J 0x48
+#define EVT0_EA8061_HESTIA_REV_I 0x47
 
 /*
 *	From 4.8 inch model use AID function

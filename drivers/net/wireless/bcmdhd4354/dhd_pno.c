@@ -1704,7 +1704,6 @@ dhd_pno_stop_for_hotlist(dhd_pub_t *dhd)
 {
 	int err = BCME_OK;
 	uint32 mode = 0;
-	int i = 0;
 	dhd_pno_status_info_t *_pno_state;
 	dhd_pno_params_t *_params;
 	wlc_ssid_t *p_ssid_list = NULL;
@@ -1756,9 +1755,9 @@ dhd_pno_stop_for_hotlist(dhd_pub_t *dhd)
 			}
 			/* convert dhd_pno_ssid to dhd_pno_ssid */
 			list_for_each_entry_safe(iter, next, &_params_legacy->ssid_list, list) {
-				p_ssid_list[i].SSID_len = iter->SSID_len;
-				memcpy(p_ssid_list[i].SSID, iter->SSID, p_ssid_list[i].SSID_len);
-				i++;
+				p_ssid_list->SSID_len = iter->SSID_len;
+				memcpy(p_ssid_list->SSID, iter->SSID, p_ssid_list->SSID_len);
+				p_ssid_list++;
 			}
 			err = dhd_pno_set_for_ssid(dhd, p_ssid_list, _params_legacy->nssid,
 				_params_legacy->scan_fr, _params_legacy->pno_repeat,

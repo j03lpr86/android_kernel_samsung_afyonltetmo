@@ -30,7 +30,7 @@
 #include <media/videobuf2-msm-mem.h>
 #include <media/msmb_camera.h>
 
-#define MSM_POST_EVT_TIMEOUT 5000
+#define MSM_POST_EVT_TIMEOUT 10000
 #define MSM_POST_STREAMOFF_EVT_TIMEOUT 9000
 #define MSM_POST_EVT_NOTIMEOUT 0xFFFFFFFF
 

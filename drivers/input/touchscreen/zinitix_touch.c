@@ -52,7 +52,7 @@
 /*#include <linux/err.h>*/
 #include <linux/regulator/consumer.h>
 
-#include <zinitix_touch.h>
+#include "zinitix_touch.h"
 #include <linux/input/mt.h>
 #include <linux/of_gpio.h>
 
@@ -221,6 +221,9 @@ struct reg_ioctl {
 
 #define BT532_X_RESOLUTION					0x00C0
 #define BT532_Y_RESOLUTION					0x00C1
+
+#define BT532_ASSUME_UP_THRESHOLD			0x00C6
+#define BT532_ASSUME_UP_SKIP_THRESHOLD			0x00C7
 
 #define BT532_POINT_STATUS_REG				0x0080
 #define BT532_ICON_STATUS_REG				0x00AA
@@ -1715,6 +1718,14 @@ retry_init:
 					(u16)pdata->y_resolution) != I2C_SUCCESS)
 		goto fail_init;
 
+	if (write_reg(client, BT532_ASSUME_UP_THRESHOLD,
+					100) != I2C_SUCCESS)
+		goto fail_init;
+
+	if (write_reg(client, BT532_ASSUME_UP_SKIP_THRESHOLD,
+					40) != I2C_SUCCESS)
+		goto fail_init;
+
 	cap->MinX = (u32)0;
 	cap->MinY = (u32)0;
 	cap->MaxX = (u32)pdata->x_resolution;
@@ -1874,6 +1885,14 @@ static bool mini_init_touch(struct bt532_ts_info *info)
 		goto fail_mini_init;
 
 	if (write_reg(client, BT532_TOTAL_NUMBER_OF_X, info->cap_info.x_node_num) != I2C_SUCCESS)
+		goto fail_mini_init;
+
+	if (write_reg(client, BT532_ASSUME_UP_THRESHOLD,
+					100) != I2C_SUCCESS)
+		goto fail_mini_init;
+
+	if (write_reg(client, BT532_ASSUME_UP_SKIP_THRESHOLD,
+					40) != I2C_SUCCESS)
 		goto fail_mini_init;
 
 	/* read garbage data */
@@ -3361,17 +3380,18 @@ static void boost_level(void *device_data)
 
 static void cover_set(struct bt532_ts_info *info, int state){
 	u16	reg_val;
-
 	if(state == COVER_OPEN){
 		dev_info(&info->client->dev, "[TSP] %s: opened\n", __func__);
 		read_data(info->client, ZINITIX_INTERNAL_FLAG_02, (u8 *)&reg_val, 2);
-		zinitix_bit_set(reg_val, 7);
+		zinitix_bit_set(reg_val, 7);	// flip cover filter enable
+		zinitix_bit_clr(reg_val, 13);	// S-View mode disable
 		write_reg(info->client, ZINITIX_INTERNAL_FLAG_02, reg_val);
 
 	} else if(state == COVER_CLOSED) {
 		dev_info(&info->client->dev, "[TSP] %s: closed\n", __func__);
 		read_data(info->client, ZINITIX_INTERNAL_FLAG_02, (u8 *)&reg_val, 2);
-		zinitix_bit_clr(reg_val, 7);
+		zinitix_bit_clr(reg_val, 7);	// flip cover filter disable
+		zinitix_bit_set(reg_val, 13);	// S-View mode enable
 		write_reg(info->client, ZINITIX_INTERNAL_FLAG_02, reg_val);
 	}
 }
@@ -4342,6 +4362,18 @@ void zinitix_vdd_on(struct bt532_ts_info *info,bool onoff)
 			regulator_disable(info->vddo_vreg);
 	}
 	gpio_direction_output(info->pdata->gpio_ldo_en, onoff);
+#ifdef CONFIG_MACH_MS01_LTE
+	if(onoff)
+	{
+		gpio_tlmm_config(GPIO_CFG(info->pdata->gpio_int, 0,
+			GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), 1);
+	}
+	else
+	{
+		gpio_tlmm_config(GPIO_CFG(info->pdata->gpio_int, 0,
+			GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA), 1);
+	}
+#endif
 	msleep(30);
 	return;
 }

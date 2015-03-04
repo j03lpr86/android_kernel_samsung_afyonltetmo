@@ -66,11 +66,10 @@ static struct candella_lux_map candela_map_table;
 
 static struct dsi_cmd gamma_cmds_list;
 static struct dsi_cmd elvss_cmds_list;
+
 static struct cmd_map aid_map_table;
 static struct dsi_cmd aid_cmds_list;
 
-static struct dsi_cmd test_key_enable_cmds;
-static struct dsi_cmd test_key_disable_cmds;
 #if defined(HBM_RE)
 static struct dsi_cmd nv_mtp_hbm_read_cmds;
 static struct dsi_cmd nv_mtp_hbm2_read_cmds;
@@ -370,19 +369,6 @@ static int get_cmd_idx(int bl_level)
 	return candela_map_table.cmd_idx[candela_map_table.bkl[bl_level]];
 }
 
-static struct dsi_cmd get_testKey_set(int enable)/*F0 or F0 F1*/
-{
-	struct dsi_cmd testKey = {0,};
-
-	if (enable)
-		testKey.cmd_desc = &(test_key_enable_cmds.cmd_desc[0]);
-	else
-		testKey.cmd_desc = &(test_key_disable_cmds.cmd_desc[0]);
-
-	testKey.num_of_cmds = test_key_disable_cmds.num_of_cmds;
-
-	return testKey;
-}
 
 static struct dsi_cmd get_aid_aor_control_set(int cd_idx)
 {
@@ -670,16 +656,12 @@ static int make_brightcontrol_set(int bl_level)
 	struct dsi_cmd elvss_control = {0,};
 	struct dsi_cmd elvss_control_cmd = {0,};
 	struct dsi_cmd gamma_control = {0,};
-	struct dsi_cmd testKey = {0,};
 	int cmd_count = 0, cd_idx = 0, cd_level =0;
 
 	cd_idx = get_cmd_idx(bl_level);
 	cd_level = get_candela_value(bl_level);
 
 	/* aid/aor */
-	testKey = get_testKey_set(1);
-	cmd_count = update_bright_packet(cmd_count, &testKey);
-
 	aid_control = get_aid_aor_control_set(cd_idx);
 	cmd_count = update_bright_packet(cmd_count, &aid_control);
 
@@ -703,8 +685,6 @@ static int make_brightcontrol_set(int bl_level)
 	gamma_control = get_gamma_control_set(cd_level);
 	cmd_count = update_bright_packet(cmd_count, &gamma_control);
 
-	testKey = get_testKey_set(0);
-	cmd_count = update_bright_packet(cmd_count, &testKey);
 	LCD_DEBUG("bright_level: %d, candela_idx: %d( %d cd ), "\
 		"cmd_count(aid,acl,elvss,temperature,gamma)::(%d,%d,%d,%d)%d,id3(0x%x)\n",
 		msd.dstat.bright_level, cd_idx, cd_level,
@@ -1077,6 +1057,9 @@ static int mipi_samsung_disp_send_cmd(
 			break;
 		case PANEL_BRIGHT_CTRL:
 			cmd_desc = brightness_packet;
+#if 1
+			goto err;
+#endif
 #if defined(CONFIG_LCD_FORCE_VIDEO_MODE)
 			flag = 0;
 #else
@@ -2002,11 +1985,6 @@ static int mdss_panel_parse_dt(struct device_node *np,
 				"samsung,panel-gamma-cmds-list");
 	mdss_samsung_parse_panel_cmd(np, &elvss_cmds_list,
 				"samsung,panel-elvss-cmds-list");
-
-	mdss_samsung_parse_panel_cmd(np, &test_key_enable_cmds,
-				"samsung,panel-test-key-enable-cmds");
-	mdss_samsung_parse_panel_cmd(np, &test_key_disable_cmds,
-				"samsung,panel-test-key-disable-cmds");
 
 	mdss_samsung_parse_panel_cmd(np, &aid_cmds_list,
 				"samsung,panel-aid-cmds-list");
@@ -3015,10 +2993,7 @@ static int __init mdss_panel_current_hw_rev(char *rev)
 	*/
 
 	board_rev = atoi(rev);
-	if (board_rev == 1) {
-		pr_info("%s : force change rev 1 -> 0\n", __func__);
-		board_rev = 0;
-	} else
+
 	pr_info("%s : %d", __func__, board_rev);
 
 	return 1;

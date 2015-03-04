@@ -2374,15 +2374,9 @@ int synaptics_rmi4_irq_enable(struct synaptics_rmi4_data *rmi4_data,
 			return retval;
 		}
 
-		if (rmi4_data->dt_data->extra_config[3])
 		retval = request_threaded_irq(rmi4_data->irq, NULL,
-				synaptics_rmi4_irq, TSP_IRQ_TYPE_LEVEL, 
+				synaptics_rmi4_irq, TSP_IRQ_TYPE, 
 				DRIVER_NAME, rmi4_data);
-		else
-			retval = request_threaded_irq(rmi4_data->irq, NULL,
-				synaptics_rmi4_irq, TSP_IRQ_TYPE_EDGE, 
-				DRIVER_NAME, rmi4_data);
-
 		if (retval < 0) {
 			dev_err(&rmi4_data->i2c_client->dev,
 					"%s: Failed to create irq thread\n",
@@ -4079,7 +4073,9 @@ static void synaptics_rmi4_set_input_data(struct synaptics_rmi4_data *rmi4_data)
 #endif
 
 	set_bit(EV_SYN, rmi4_data->input_dev->evbit);
+#if !defined(CONFIG_SEC_HESTIA_PROJECT)
 	set_bit(EV_KEY, rmi4_data->input_dev->evbit);
+#endif
 	set_bit(EV_ABS, rmi4_data->input_dev->evbit);
 	set_bit(BTN_TOUCH, rmi4_data->input_dev->keybit);
 	set_bit(BTN_TOOL_FINGER, rmi4_data->input_dev->keybit);
@@ -5218,16 +5214,7 @@ err_tsp_reboot:
 
 	/* for blocking to be excuted open function until probing */
 	rmi4_data->tsp_probe = true;
-#if defined(CONFIG_SEC_HESTIA_PROJECT)
-        retval = synaptics_rmi4_reset_device(rmi4_data);
-        if (retval < 0) {
-                dev_err(&client->dev,
-                                "%s: Failed to issue reset command, error = %d\n",
-                                __func__, retval);
-                return retval;
-        }
-	msleep(SYNAPTICS_HW_RESET_TIME);
-#endif
+
 #ifdef SIDE_TOUCH
 	/* default deepsleep mode */
 	rmi4_data->use_deepsleep = DEFAULT_DISABLE;

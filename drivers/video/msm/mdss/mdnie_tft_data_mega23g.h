@@ -21,7 +21,7 @@
 ////////////////// UI /// /////////////////////
 
 static char STANDARD_UI_1[] = {
-	0xBD,
+	0xBD,///////////////negative
 	0x01 //BANK 1
 };
 
@@ -76,7 +76,7 @@ static char STANDARD_UI_2[] = {
 	0x20,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x40,	//cs gain
+	0x80,	//cs gain
 	0x01,
 };
 
@@ -190,7 +190,7 @@ static char DYNAMIC_UI_2[] = {
 	0x06,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x60,	//cs gain
+	0xa0,	//cs gain
 	0x01,
 };
 
@@ -421,7 +421,7 @@ char AUTO_UI_2[] = {
 	0x17,	//curve23	a
 	0x00,	//curve24	b
 	0xFF,	//curve24	a
-	0x40,	//cs gain
+	0x80,	//cs gain
 	0x01,
 };
 
@@ -540,7 +540,7 @@ static char STANDARD_GALLERY_2[] = {
 	0x20,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x40,	//cs gain
+	0x80,	//cs gain
 	0x01,
 };
 
@@ -654,7 +654,7 @@ static char DYNAMIC_GALLERY_2[] = {
 	0x17,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x60,	//cs gain
+	0xa0,	//cs gain
 	0x01,
 };
 static char DYNAMIC_GALLERY_3[] = {
@@ -886,7 +886,7 @@ char AUTO_GALLERY_2[] = {
 	0x20,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x40,	//cs gain
+	0x80,	//cs gain
 	0x01,
 };
 
@@ -1004,7 +1004,7 @@ static char STANDARD_VIDEO_2[] = {
 	0x20,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x40,	//cs gain
+	0x80,	//cs gain
 	0x01,
 };
 
@@ -1119,7 +1119,7 @@ static char DYNAMIC_VIDEO_2[] = {
 	0x06,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x60,	//cs gain
+	0xa0,	//cs gain
 	0x01,
 };
 
@@ -1353,7 +1353,7 @@ char AUTO_VIDEO_2[] = {
 	0x17,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x40,	//cs gain
+	0x80,	//cs gain
 	0x01,
 };
 
@@ -1472,7 +1472,7 @@ static char STANDARD_VT_2[] = {
 	0x20,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x40,	//cs gain
+	0x80,	//cs gain
 	0x01,
 };
 
@@ -1587,7 +1587,7 @@ static char DYNAMIC_VT_2[] = {
 	0x17,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x60,	//cs gain
+	0xa0,	//cs gain
 	0x01,
 };
 
@@ -1820,7 +1820,7 @@ char AUTO_VT_2[] = {
 	0x20,	//curve23	a
 	0x00,	//curve24	b
 	0xFF,	//curve24	a
-	0x40,	//cs gain
+	0x80,	//cs gain
 	0x01,
 };
 
@@ -1938,7 +1938,7 @@ static char CAMERA_2[] = {
 	0x20,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x40,	//cs gain
+	0x80,	//cs gain
 	0x01,
 };
 
@@ -2053,7 +2053,7 @@ char AUTO_CAMERA_2[] = {
 	0x20,	//curve23	a
 	0x00,	//curve24	b
 	0xFF,	//curve24	a
-	0x40,	//cs gain	
+	0x80,	//cs gain	
 	0x01,
 };
 
@@ -2404,7 +2404,7 @@ char STANDARD_BROWSER_2[] = {
 	0x20,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x40,	//cs gain
+	0x80,	//cs gain
 	0x01,
 };
 
@@ -2519,7 +2519,7 @@ char DYNAMIC_BROWSER_2[] = {
 	0x17,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x60,	//cs gain
+	0xa0,	//cs gain
 	0x01,
 };
 
@@ -2704,57 +2704,62 @@ char AUTO_BROWSER_1[] = {
 
 char AUTO_BROWSER_2[] = {
 	0xCD,
-	0x02, //sharpen_set cs_en gamma_en 00 0 0
-	0x00, //curve 1 b
-	0x20, //curve 1 a
-	0x00, //curve 2 b
-	0x20, //curve 2 a
-	0x00, //curve 3 b
-	0x20, //curve 3 a
-	0x00, //curve 4 b
-	0x20, //curve 4 a
-	0x00, //curve 5 b
-	0x20, //curve 5 a
-	0x00, //curve 6 b
-	0x20, //curve 6 a
-	0x00, //curve 7 b
-	0x20, //curve 7 a
-	0x00, //curve 8 b
-	0x20, //curve 8 a
-	0x00, //curve 9 b
-	0x20, //curve 9 a
-	0x00, //curve10 b
-	0x20, //curve10 a
-	0x00, //curve11 b
-	0x20, //curve11 a
-	0x00, //curve12 b
-	0x20, //curve12 a
-	0x00, //curve13 b
-	0x20, //curve13 a
-	0x00, //curve14 b
-	0x20, //curve14 a
-	0x00, //curve15 b
-	0x20, //curve15 a
-	0x00, //curve16 b
-	0x20, //curve16 a
-	0x00, //curve17 b
-	0x20, //curve17 a
-	0x00, //curve18 b
-	0x20, //curve18 a
-	0x00, //curve19 b
 	0x20, //curve19 a
-	0x00, //curve20 b
-	0x20, //curve20 a
-	0x00, //curve21 b
-	0x20, //curve21 a
-	0x00, //curve22 b
-	0x20, //curve22 a
-	0x00, //curve23 b
-	0x20, //curve23 a
-	0x00, //curve24 b
-	0xFF, //curve24 a
-	0x40, //cs gain
-	0x01,
+	0x00, //curve19 b
+	0x20, //curve18 a
+	0x00, //curve18 b
+	0x20, //curve17 a
+	0x00, //curve17 b
+	0x20, //curve16 a
+	0x00, //curve16 b
+	0x20, //curve15 a
+	0x00, //curve15 b
+	0x20, //curve14 a
+	0x00, //curve14 b
+	0x20, //curve13 a
+	0x00, //curve13 b
+	0x20, //curve12 a
+	0x00, //curve12 b
+	0x20, //curve11 a
+	0x00, //curve11 b
+	0x20, //curve10 a
+	0x00, //curve10 b
+	0x20, //curve 9 a
+	0x00, //curve 9 b
+	0x20, //curve 8 a
+	0x00, //curve 8 b
+	0x20, //curve 7 a
+	0x00, //curve 7 b
+	0x20, //curve 6 a
+	0x00, //curve 6 b
+	0x20, //curve 5 a
+	0x00, //curve 5 b
+	0x20, //curve 4 a
+	0x00, //curve 4 b
+	0x20, //curve 3 a
+	0x00, //curve 3 b
+	0x20, //curve 2 a
+	0x00, //curve 2 b
+	0x20, //curve 1 a
+	0x00, //curve 1 b
+	0x04, //cc b3
+	0x00,
+	0x00, //cc b2
+	0x00,
+	0x00, //cc b1
+	0x00,
+	0x00, //cc g3
+	0x00,
+	0x04, //cc g2
+	0x00,
+	0x00, //cc g1
+	0x00,
+	0x00, //cc r3
+	0x00,
+	0x00, //cc r2
+	0x00,
+	0x04, //cc r1
+	0x00,
 };
 
 char AUTO_BROWSER_3[] = {
@@ -2767,48 +2772,59 @@ char AUTO_BROWSER_4[] = {
 	0x5A, //password 5A
 	0x00, //mask 000
 	0x00, //data_width
-	0x33, //scr_roi 1 scr algo_roi 1 algo 00 1 0 00 1 0
+	0x22, //scr_roi 1 scr algo_roi 1 algo 00 1 0 00 1 0
 	0x00, //roi_ctrl
-	0x00, //roi0 x start
-	0x00,
-	0x00, //roi0 x end
-	0x00,
-	0x00, //roi0 y start
-	0x00,
-	0x00, //roi0 y end
-	0x00,
-	0x00, //roi1 x strat
-	0x00,
-	0x00, //roi1 x end
+	0x00, //roi1 y end
 	0x00,
 	0x00, //roi1 y start
 	0x00,
-	0x00, //roi1 y end
+	0x00, //roi1 x end
 	0x00,
-	0x00, //scr Cr Yb
-	0xff, //scr Rr Bb
-	0xff, //scr Cg Yg
-	0x00, //scr Rg Bg
-	0xff, //scr Cb Yr
-	0x00, //scr Rb Br
-	0xff, //scr Mr Mb
-	0x00, //scr Gr Gb
-	0x00, //scr Mg Mg
-	0xff, //scr Gg Gg
-	0xff, //scr Mb Mr
-	0x00, //scr Gb Gr
-	0xff, //scr Yr Cb
-	0x00, //scr Br Rb
-	0xf0, //scr Yg Cg
-	0x00, //scr Bg Rg
-	0x00, //scr Yb Cr
-	0xff, //scr Bb Rr
-	0xff, //scr Wr Wb
-	0x00, //scr Kr Kb
-	0xff, //scr Wg Wg
-	0x00, //scr Kg Kg
-	0xff, //scr Wb Wr
-	0x00, //scr Kb Kr
+	0x00, //roi1 x start
+	0x00,
+	0x00, //roi0 y end
+	0x00,
+	0x00, //roi0 y start
+	0x00,
+	0x00, //roi0 x end
+	0x00,
+	0x00, //roi0 x start
+	0x00,
+	0x00, //scr Kb
+	0xFF, //scr Wb
+	0x00, //scr Kg
+	0xFF, //scr Wg
+	0x00, //scr Kr
+	0xFF, //scr Wr
+	0xFF, //scr Bb
+	0x00, //scr Yb
+	0x00, //scr Bg
+	0xFF, //scr Yg
+	0x00, //scr Br
+	0xFF, //scr Yr
+	0x00, //scr Gb
+	0xFF, //scr Mb
+	0xFF, //scr Gg
+	0x00, //scr Mg
+	0x00, //scr Gr
+	0xFF, //scr Mr
+	0x00, //scr Rb
+	0xFF, //scr Cb
+	0x00, //scr Rg
+	0xFF, //scr Cg
+	0xFF, //scr Rr
+	0x00, //scr Cr
+	0x00, //sharpen_set cc_en gamma_en 00 0 0
+	0x20, //curve24 a
+	0x00, //curve24 b
+	0x20, //curve23 a
+	0x00, //curve23 b
+	0x20, //curve22 a
+	0x00, //curve22 b
+	0x20, //curve21 a
+	0x00, //curve21 b
+	0x20, //curve20 a
+	0x00, //curve20 b
 };
 
 
@@ -2873,7 +2889,7 @@ char AUTO_EBOOK_2[] = {
 	0x20,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x40,	//cs gain
+	0x80,	//cs gain
 	0x01,
 };
 
@@ -2988,7 +3004,7 @@ char AUTO_EMAIL_2[] = {
 	0x20,	//curve23
 	0x00,	//curve24
 	0xFF,	//curve24
-	0x40,	//cs gain
+	0x80,	//cs gain
 	0x01,
 };
 

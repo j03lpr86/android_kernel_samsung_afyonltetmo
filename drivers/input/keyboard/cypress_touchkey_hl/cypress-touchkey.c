@@ -2538,13 +2538,6 @@ static int i2c_touchkey_probe(struct i2c_client *client,
 		goto err_sysfs_init;
 	}
 
-	ret = sysfs_create_link(&tkey_i2c->dev->kobj,
-					&tkey_i2c->input_dev->dev.kobj, "input");
-	if (ret) {
-		dev_err(&client->dev, "Failed to connect link\n");
-		goto err_create_symlink;
-	}
-
 	tkey_i2c->fw_wq = create_singlethread_workqueue(client->name);
 	if (!tkey_i2c->fw_wq) {
 		dev_err(&client->dev, "fail to create workqueue for fw_wq\n");
@@ -2638,9 +2631,6 @@ err_i2c_check:
 #endif
 	destroy_workqueue(tkey_i2c->fw_wq);
 err_create_fw_wq:
-	sysfs_delete_link(&tkey_i2c->dev->kobj,
-		&tkey_i2c->input_dev->dev.kobj, "input");
-err_create_symlink:
 	sysfs_remove_group(&tkey_i2c->dev->kobj, &touchkey_attr_group);
 err_sysfs_init:
 	device_destroy(sec_class, (dev_t)NULL);

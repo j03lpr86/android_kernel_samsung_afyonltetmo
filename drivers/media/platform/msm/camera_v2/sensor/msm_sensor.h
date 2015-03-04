@@ -53,6 +53,8 @@ struct msm_sensor_fn_t {
 		struct msm_camera_slave_info *, const char *);
 	int (*sensor_match_id) (struct msm_camera_i2c_client *,
 		struct msm_camera_slave_info *, const char *);
+	int (*sensor_native_control) (struct msm_sensor_ctrl_t *, void __user *);
+	int (*sensor_get_exif_data)(struct msm_sensor_ctrl_t *, void __user *);
 };
 
 struct msm_sensor_ctrl_t {

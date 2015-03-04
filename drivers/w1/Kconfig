@@ -37,12 +37,6 @@ config W1_CF
 	help
 	  This allows to check the node.
 
-config W1_SN
-	bool "New node for checking SN"
-	default n
-	help
-	  This allows to check the SN.
-
 source drivers/w1/masters/Kconfig
 source drivers/w1/slaves/Kconfig
 

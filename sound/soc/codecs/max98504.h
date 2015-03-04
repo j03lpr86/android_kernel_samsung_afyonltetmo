@@ -13,9 +13,18 @@
 
 #include <linux/version.h>
 
+/* One can override the Linux version here with an explicit version number */
+/* #define MAX98504_LINUX_VERSION LINUX_VERSION_CODE */
+/*
+ * Driver revision
+ */
+#define MAX98504_REVISION               "0.00.02"
+
 /*
  * MAX98504 Register Definitions
  */
+//#define MAX98504_WATCHDOG_ENABLE
+
 #define MAX98504_REG_01_INTERRUPT_STATUS	0x01
 #define MAX98504_REG_02_INTERRUPT_FLAGS	0x02
 #define MAX98504_REG_03_INTERRUPT_ENABLES	0x03
@@ -434,9 +443,6 @@
 
 #define M98504_PCM_DSP_CFG_FLT_MASK	M98504_PCM_DSP_CFG_TX_DITH_EN_MASK|M98504_PCM_DSP_CFG_MEAS_DCBLK_EN_MASK\
 	|M98504_PCM_DSP_CFG_RX_DITH_EN_MASK|M98504_PCM_DSP_CFG_RX_FLT_MODE_MASK
-#define M98504_PCM_DSP_CFG_FLT_SHIFT			4
-#define M98504_PCM_DSP_CFG_FLT_WIDTH			4
-
 
 #define M98504_PCM_DSP_CFG_RX_GAIN_MASK			(0xf<<0)
 #define M98504_PCM_DSP_CFG_RX_GAIN_SHIFT			0
@@ -509,7 +515,7 @@
 #define M98504_SPK_EN_WIDTH			1
 
 /* MAX98504_REG_35_SPEAKER_SOURCE_SELECT	 */ // 0x35
-#define M98504_SPK_SRC_SEL_MASK			(0x3<<0)
+#define M98504_SPK_SRC_SEL_MASK			(0x2<<0)
 #define M98504_SPK_SRC_SEL_SHIFT			0
 #define M98504_SPK_SRC_SEL_WIDTH			2
 
@@ -562,12 +568,17 @@ struct max98504_cdata {
 
 struct max98504_priv {
 	struct snd_soc_codec *codec;
+	
 	enum max98504_type devtype;
 	void *control_data;
 	struct max98504_pdata *pdata;
 	unsigned int sysclk;
+	unsigned int iv_status;
+
 	struct max98504_cdata dai[1];
-	unsigned int status;
+#ifdef MAX98504_WATCHDOG_ENABLE
+	struct delayed_work work;
+#endif
 };
 
 #endif

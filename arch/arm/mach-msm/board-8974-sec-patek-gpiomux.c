@@ -1326,7 +1326,6 @@ static struct msm_gpiomux_config msm_sensor_configs_dragonboard[] __initdata = {
 			[GPIOMUX_SUSPENDED] = &gpio_suspend_config[1],
 		},
 	},
-#if !defined(CONFIG_MACH_PATEKLTE_CTC)
 	{
 		.gpio = 26, /* CAM_IRQ */
 		.settings = {
@@ -1334,7 +1333,6 @@ static struct msm_gpiomux_config msm_sensor_configs_dragonboard[] __initdata = {
 			[GPIOMUX_SUSPENDED] = &cam_settings[1],
 		},
 	},
-#endif
 	{
 		.gpio = 27, /* OIS_SYNC */
 		.settings = {
@@ -2274,13 +2272,12 @@ static struct gpiomux_setting gpio_spi_btp_config = {
 	.pull = GPIOMUX_PULL_NONE,
 };
 
-#if !defined(CONFIG_MACH_PATEKLTE_CTC)
 static struct gpiomux_setting gpio_spi_btp_clk_config = {
 	.func = GPIOMUX_FUNC_3,
 	.drv = GPIOMUX_DRV_2MA,
 	.pull = GPIOMUX_PULL_NONE,
 };
-#endif
+
 static struct gpiomux_setting gpio_spi_btp_irq_config = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_2MA,
@@ -2320,7 +2317,6 @@ static struct msm_gpiomux_config msm8974_fingerprint_configs[] __initdata = {
 			[GPIOMUX_ACTIVE] = &gpio_spi_btp_config,
 		},
 	},
-#if !defined(CONFIG_MACH_PATEKLTE_CTC)
 	{
 		/* CLK  */
 		.gpio = 26,
@@ -2329,7 +2325,6 @@ static struct msm_gpiomux_config msm8974_fingerprint_configs[] __initdata = {
 			[GPIOMUX_ACTIVE] = &gpio_spi_btp_clk_config,
 		},
 	},
-#endif
 #if !defined(CONFIG_MACH_PATEKLTE_CTC)
 	{
 		/* BTP_RST_N */

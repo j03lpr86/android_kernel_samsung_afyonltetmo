@@ -97,10 +97,6 @@ void msm_isp_process_stats_irq(struct vfe_device *vfe_dev,
 			continue;
 		stream_info = &vfe_dev->stats_data.stream_info[i];
 		done_buf = NULL;
-		if(stream_info->state == STATS_INACTIVE) {
-			pr_err("%s: Error stream_info type %d state %d", __func__, stream_info->stats_type, stream_info->state);
-			return;
-		}
 		msm_isp_stats_cfg_ping_pong_address(vfe_dev,
 			stream_info, pingpong_status, &done_buf);
 		if (done_buf) {

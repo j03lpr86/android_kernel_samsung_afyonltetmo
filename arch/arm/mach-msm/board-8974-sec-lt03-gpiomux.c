@@ -1842,23 +1842,6 @@ static struct msm_gpiomux_config gpio_nc_configs[] __initdata = {
 };
 #endif
 
-static struct gpiomux_setting gpio_audio_pullnone_config = {
-	.func = GPIOMUX_FUNC_GPIO,
-	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_NONE,
-	.dir = GPIOMUX_IN,
-};
-
-static struct msm_gpiomux_config msm8974_audio_configs[] __initdata = {
-	{
-		.gpio      = 77,
-		.settings = {
-			[GPIOMUX_ACTIVE]    = &gpio_audio_pullnone_config,
-			[GPIOMUX_SUSPENDED] = &gpio_audio_pullnone_config,
-		},
-	},
-};
-
 static struct msm_gpiomux_config apq8074_dragonboard_ts_config[] __initdata = {
 	{
 		/* BLSP1 QUP I2C_DATA */
@@ -2133,9 +2116,6 @@ void __init msm_8974_init_gpiomux(void)
 		msm_gpiomux_install(msm_rumi_blsp_configs,
 				    ARRAY_SIZE(msm_rumi_blsp_configs));
 #endif
-
-	msm_gpiomux_install(msm8974_audio_configs,
-			ARRAY_SIZE(msm8974_audio_configs));
 
 	if (socinfo_get_platform_subtype() == PLATFORM_SUBTYPE_MDM)
 		msm_gpiomux_install(mdm_configs,

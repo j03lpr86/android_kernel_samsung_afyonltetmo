@@ -318,7 +318,6 @@ enum {
 	BIO_HRM_RAW,
 	BIO_HRM_RAW_FAC,
 	BIO_HRM_LIB,
-	UV_SENSOR,
 	SENSOR_MAX,
 };
 	
@@ -371,9 +370,6 @@ struct sensor_value {
 		u8 step_det;
 		u8 sig_motion;
 		u32 step_diff;
-#ifdef CONFIG_SENSORS_SSP_UV
-		u8 uv;
-#endif
 		u8 prox[4];
 		u8 data[20];
 		s32 pressure[3];
@@ -489,9 +485,6 @@ struct ssp_data {
 	defined(CONFIG_SENSORS_SSP_MAX88920)
 	struct input_dev *gesture_input_dev;
 #endif
-#ifdef CONFIG_SENSORS_SSP_UV
-	struct input_dev *uv_input_dev;
-#endif
 	struct input_dev *sig_motion_input_dev;
 	struct input_dev *uncalib_gyro_input_dev;
 	struct input_dev *step_cnt_input_dev;
@@ -521,9 +514,6 @@ struct ssp_data {
 #endif
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 	struct device *temphumidity_device;
-#endif
-#ifdef CONFIG_SENSORS_SSP_UV
-	struct device *uv_device;
 #endif
 	struct delayed_work work_firmware;
 	struct delayed_work work_refresh;
@@ -761,9 +751,6 @@ void report_pressure_data(struct ssp_data *, struct sensor_value *);
 #endif
 void report_light_data(struct ssp_data *, struct sensor_value *);
 void report_prox_data(struct ssp_data *, struct sensor_value *);
-#ifdef CONFIG_SENSORS_SSP_UV
-void report_uv_data(struct ssp_data *, struct sensor_value *);
-#endif
 void report_prox_raw_data(struct ssp_data *, struct sensor_value *);
 void report_geomagnetic_raw_data(struct ssp_data *, struct sensor_value *);
 void report_sig_motion_data(struct ssp_data *, struct sensor_value *);

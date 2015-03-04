@@ -1138,6 +1138,12 @@ config MACH_MS01_EUR_3G
         help
           Support for the Samsung MS01 EUR 3G device
 
+config MACH_MS01_EUR_LTE
+		depends on SEC_MS01_PROJECT
+        bool "MSM8926 MS01 EUR LTE"
+        help
+          Support for the Samsung MS01 EUR LTE device
+
 config MACH_VICTOR3GDSDTV_LTN
 	bool "VICTOR3GDSDTV LTN"
         default n
@@ -2187,12 +2193,6 @@ config SEC_JS_PROJECT
 	help
 	  Support for Samsung JS project.
 
-config SEC_JSZT_PROJECT
-	default n
-	bool "Samsung JSZT project"
-	help
-	  Support for Samsung JSZT project.
-
 config MACH_H
 	default n
 	bool "Samsung model H"
@@ -2465,13 +2465,6 @@ config MACH_JS01LTEDCM
 	select SEC_JS_PROJECT
 	help
 	  Support for Samsung JS01LTEDCM device.
-
-config MACH_JS01LTEZT
-	default n
-	bool "Samsung model JS01LTEZT"
-	select SEC_JSZT_PROJECT
-	help
-	  Support for Samsung JS01LTEZT device.
 
 config MACH_HLTESKT
 	default n
@@ -4762,6 +4755,12 @@ config TIMA_RKP_DEBUG
        help
          TIMA debug infrastructure.
 
+config TIMA
+       bool "Enable TIMA feature"
+       default n
+       help
+         Enables TIMA
+		 
 config TIMA_LKMAUTH
        bool "Enable LKM authentication TIMA feature"
        default n
@@ -4772,7 +4771,7 @@ config TIMA_LKMAUTH
 config TIMA_LKMAUTH_CODE_PROT
        bool
        depends on TIMA_LKMAUTH
-       default y
+       default n
        help
          When enabled, this feature will mark all Executable sections in an
          LKM as RO
@@ -4785,12 +4784,14 @@ config TIMA_TEST_INFRA
 
 config TIMA_UEVENT
        bool "Uevent message propagation for TIMA"
+	   depends on TIMA
        default n
        help
          Uevent messages for TIMA PKM/LKM
 
 config TIMA_LOG
        bool "Log dumping support for TIMA"
+	   depends on TIMA
        default n
        help
          TIMA Log dumping support

@@ -336,7 +336,7 @@ static void irda_remocon_work(struct ir_remocon_data *ir_data, int count)
 	struct i2c_client *client = data->client;
 
 	int buf_size = count+2;
-	int ret, retry, ng_retry;
+	int ret, retry;
 	int sleep_timing;
 	int end_data;
 	int emission_time;
@@ -346,7 +346,7 @@ static void irda_remocon_work(struct ir_remocon_data *ir_data, int count)
 		count_number = 0;
 
 	count_number++;
-	ng_retry = 0;
+
 	gpio_tlmm_config(GPIO_CFG(ir_data->pdata->irda_irq_gpio,  0, GPIO_CFG_INPUT,
 		GPIO_CFG_PULL_UP, GPIO_CFG_2MA), GPIO_CFG_ENABLE);
 
@@ -356,7 +356,6 @@ static void irda_remocon_work(struct ir_remocon_data *ir_data, int count)
 
 	mutex_lock(&data->mutex);
 
-resend_data:
 	ret = i2c_master_send(client, data->signal, buf_size);
 	if (ret < 0) {
 		dev_err(&client->dev, "%s: err1 %d\n", __func__, ret);
@@ -370,22 +369,9 @@ resend_data:
 	ack_pin_onoff = 0;
 	for(retry = 0; retry < 10; retry++) {
 		if (gpio_get_value(data->pdata->irda_irq_gpio)) {
-			if(retry == 9) {
-				ng_retry++;
-				if(ng_retry < 2) {
-					data->pdata->ir_wake_en(data->pdata,0);
-					gpio_set_value(data->pdata->irda_led_en, 0);
-					irda_vdd_onoff(0);
-					msleep(30);
-					data->pdata->ir_wake_en(data->pdata,1);
-					gpio_set_value(data->pdata->irda_led_en, 1);
-					irda_vdd_onoff(1);
-					msleep(80);
-					goto resend_data;
-				}
+			if(retry == 9)
 				pr_err("%s : %d Checksum NG!\n",
 					__func__, count_number);
-			}
 			ack_pin_onoff = 1;
 			msleep(5);
 		} else {
@@ -430,22 +416,9 @@ resend_data:
 			ack_pin_onoff = 4;
 			break;
 		} else {
-			if(retry == 9) {
-				ng_retry++;
-				if(ng_retry < 2) {
-					data->pdata->ir_wake_en(data->pdata,0);
-					gpio_set_value(data->pdata->irda_led_en, 0);
-					irda_vdd_onoff(0);
-					msleep(30);
-					data->pdata->ir_wake_en(data->pdata,1);
-					gpio_set_value(data->pdata->irda_led_en, 1);
-					irda_vdd_onoff(1);
-					msleep(80);
-					goto resend_data;
-				}
+			if(retry == 9)
 				pr_info("%s : %d Sending IR NG!\n",
 					__func__, count_number);
-			}
 			ack_pin_onoff = 2;
 			msleep(50);
 		}

@@ -34,9 +34,6 @@
 
 #include "inv_mpu_iio.h"
 
-#define MAX_GYRO	32767
-#define MIN_GYRO	-32768
-
 static u8 fifo_data[HARDWARE_FIFO_SIZE + HEADERED_Q_BYTES];
 static int inv_process_batchmode(struct inv_mpu_state *st);
 
@@ -1282,7 +1279,6 @@ static int inv_report_gyro_accel(struct iio_dev *indio_dev,
 {
 	struct inv_mpu_state *st = iio_priv(indio_dev);
 	short s[THREE_AXIS];
-	short raw_temp[THREE_AXIS];
 	int ind;
 	int i;
 
@@ -1298,15 +1294,8 @@ static int inv_report_gyro_accel(struct iio_dev *indio_dev,
 	}
 
 	if (st->sensor[SENSOR_GYRO].on) {
-		for (i = 0; i < 3; i++) {
-			raw_temp[i] = be16_to_cpup((__be16 *)(&data[ind + i * 2]));
-			s[i] = raw_temp[i] - (s16)st->gyro_bias[i];
-			if (!(s[i] >> 15 == raw_temp[i] >> 15) &&\
-				!((s16)st->gyro_bias[i] >> 15 == raw_temp[i] >> 15)) {
-				pr_info("[SENSOR] %s GYRO [%d] is overflowed!!!\n", __func__, i);
-				s[i] = (s[i] >= 0 ? MIN_GYRO : MAX_GYRO);
-			}
-		}
+		for (i = 0; i < 3; i++)
+			s[i] = be16_to_cpup((__be16 *)(&data[ind + i * 2]));
 		inv_push_8bytes_buffer(st, GYRO_HDR, t, s);
 		ind += BYTES_PER_SENSOR;
 	}
@@ -1632,7 +1621,7 @@ static int inv_process_batchmode(struct inv_mpu_state *st)
 	done_flag = false;
 	target_bytes = st->fifo_count + st->left_over_size;
 	counter = 0;
-	while (((dptr - d) <= (target_bytes - HEADERED_NORMAL_BYTES)) &&
+	while ((dptr - d <= target_bytes - HEADERED_NORMAL_BYTES) &&
 							(!done_flag)) {
 		hdr = (u16)be16_to_cpup((__be16 *)(dptr));
 		steps = (hdr & STEP_INDICATOR_MASK);
@@ -1641,11 +1630,11 @@ static int inv_process_batchmode(struct inv_mpu_state *st)
 		/* error packet */
 		if ((sensor_ind == SENSOR_INVALID) ||
 				(!st->sensor[sensor_ind].on)) {
-			dptr += (HEADERED_NORMAL_BYTES / 4);
+			dptr += HEADERED_NORMAL_BYTES;
 			continue;
 		}
 		/* incomplete packet */
-		if ((target_bytes - (dptr - d)) <
+		if (target_bytes - (dptr - d) <
 					st->sensor[sensor_ind].sample_size) {
 			done_flag = true;
 			continue;

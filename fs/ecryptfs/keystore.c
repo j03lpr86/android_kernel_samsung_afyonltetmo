@@ -35,10 +35,6 @@
 #include <linux/slab.h>
 #include "ecryptfs_kernel.h"
 
-#ifdef CONFIG_SDP
-#include "ecryptfs_dek.h"
-#endif
-
 /**
  * request_key returned an error instead of a valid key address;
  * determine the type of error, make appropriate log entries, and
@@ -1772,13 +1768,6 @@ decrypt_passphrase_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
 		ecryptfs_dump_hex(crypt_stat->key,
 				  crypt_stat->key_size);
 	}
-
-#ifdef CONFIG_SDP
-	if ((crypt_stat->flags & ECRYPTFS_DEK_SDP_ENABLED) &&
-			!(crypt_stat->flags & ECRYPTFS_DEK_IS_SENSITIVE)) {
-		ecryptfs_decrypt_dek(auth_tok, crypt_stat);
-	}
-#endif
 out:
 	return rc;
 }
@@ -1888,22 +1877,6 @@ int ecryptfs_parse_packet_set(struct ecryptfs_crypt_stat *crypt_stat,
 			rc = -EIO;
 			goto out_wipe_list;
 			break;
-#ifdef CONFIG_SDP
-		case ECRYPTFS_DEK_PACKET_TYPE:
-			printk("%s() ECRYPTFS_DEK_PACKET_TYPE \n",
-					__func__);
-			rc = parse_dek_packet(
-					(unsigned char *)&src[i], crypt_stat,
-					&packet_size);
-			if (rc) {
-				ecryptfs_printk(KERN_ERR, "Error parsing "
-						"dek packet\n");
-			rc = -EIO;
-			goto out_wipe_list;
-			}
-			i += packet_size;
-			break;
-#endif
 		default:
 			ecryptfs_printk(KERN_DEBUG, "No packet at offset [%zd] "
 					"of the file header; hex value of "
@@ -2384,14 +2357,6 @@ write_tag_3_packet(char *dest, size_t *remaining_bytes,
 		ecryptfs_dump_hex(key_rec->enc_key,
 				  key_rec->enc_key_size);
 	}
-
-#ifdef CONFIG_SDP
-	if ((crypt_stat->flags & ECRYPTFS_DEK_SDP_ENABLED) &&
-			!(crypt_stat->flags & ECRYPTFS_DEK_IS_SENSITIVE)) {
-		ecryptfs_encrypt_dek(auth_tok, crypt_stat);
-	}
-#endif
-
 encrypted_session_key_set:
 	/* This format is inspired by OpenPGP; see RFC 2440
 	 * packet tag 3 */
@@ -2528,18 +2493,6 @@ ecryptfs_generate_key_packet_set(char *dest_base,
 				goto out_free;
 			}
 			(*len) += written;
-#ifdef CONFIG_SDP
-			if (crypt_stat->flags & ECRYPTFS_DEK_SDP_ENABLED) {
-				rc = write_dek_packet(dest_base + (*len), crypt_stat,
-						&written);
-				if (rc) {
-					ecryptfs_printk(KERN_WARNING, "Error "
-							"writing dek packet\n");
-					goto out_free;
-				}
-				(*len) += written;
-			}
-#endif
 		} else if (auth_tok->token_type == ECRYPTFS_PRIVATE_KEY) {
 			rc = write_tag_1_packet(dest_base + (*len), &max,
 						auth_tok_key, auth_tok,

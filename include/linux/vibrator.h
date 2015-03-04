@@ -47,10 +47,6 @@ struct vibrator_platform_data {
 #if defined(CONFIG_MOTOR_DRV_DRV2603)
 	unsigned int drv2603_en_gpio;
 #endif
-#if defined(CONFIG_MOTOR_DRV_MAX77888)
-	unsigned int max77888_en_gpio;
-#endif
-
 };
 
 struct vibrator_platform_data_motor {

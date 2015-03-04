@@ -58,10 +58,6 @@ static int err_fg_working;
 #define ESD_DEBUG 1
 #endif
 
-#if defined(CONFIG_CABC_TUNING_HX8394C)
-static int bl_level_cabc_on;
-#endif
-
 DEFINE_LED_TRIGGER(bl_led_trigger);
 
 static struct mdss_samsung_driver_data msd;
@@ -149,10 +145,10 @@ void mdss_dsi_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl, struct dsi_cmd_desc *c
 	cmdreq.flags = CMD_REQ_COMMIT | CMD_CLK_CTRL;
 	cmdreq.rlen = 0;
 	cmdreq.cb = NULL;
-
-
+	
+		
 	mdss_dsi_cmdlist_put(ctrl, &cmdreq);
-
+	
 }
 
 static void mdss_dsi_panel_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl,
@@ -221,27 +217,28 @@ unsigned int mdss_dsi_show_cabc(void )
 }
 void mdss_dsi_store_cabc(unsigned int cabc)
 {
-#if defined(CONFIG_CABC_TUNING_HX8394C)
 	struct mdss_panel_data *pdata = msd.mpd;
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
+
+#if defined (CONFIG_FB_MSM_MDSS_HX8394C_TFT_VIDEO_720P_PANEL)
+	int bl_backup;
 #endif
 
 	if( msd.mfd->panel_power_on == false){
 		pr_err("%s: panel power off no bl ctrl\n", __func__);
 		return;
 	}
-#if defined(CONFIG_CABC_TUNING_HX8394C)
 	ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 						panel_data);
-	bl_level_cabc_on=msd.mfd->bl_level;
+
+#if defined (CONFIG_FB_MSM_MDSS_HX8394C_TFT_VIDEO_720P_PANEL)
+	bl_backup=msd.mfd->bl_level;
 #endif
-
 	msd.dstat.siop_status=cabc;
-#if defined(CONFIG_CABC_TUNING_HX8394C)
+
 	if(msd.dstat.siop_status == 1){
-
-		mdss_dsi_panel_cmds_send(ctrl_pdata, &ctrl_pdata->cabc_on_cmds);
-
+			mdss_dsi_panel_cmds_send(ctrl_pdata, &ctrl_pdata->cabc_on_cmds);
+#if defined(CONFIG_MDNIE_TFT_MSM8X26) && defined(CONFIG_FB_MSM_MDSS_HX8394C_TFT_VIDEO_720P_PANEL)
 		if(msd.mfd->bl_level<84)
 			mdss_dsi_panel_cmds_send(ctrl_pdata, &ctrl_pdata->cabc_duty_72);
 		else if(msd.mfd->bl_level >= 84 && msd.mfd->bl_level < 98)
@@ -250,14 +247,14 @@ void mdss_dsi_store_cabc(unsigned int cabc)
 			mdss_dsi_panel_cmds_send(ctrl_pdata, &ctrl_pdata->cabc_duty_78);
 		else
 			mdss_dsi_panel_cmds_send(ctrl_pdata, &ctrl_pdata->cabc_duty_82);
-
+#endif
 			mdss_dsi_panel_bl_ctrl(pdata,msd.mfd->bl_level);
 	} else {
-		msd.mfd->bl_level=bl_level_cabc_on;
+		msd.mfd->bl_level=bl_backup;
 		mdss_dsi_panel_cmds_send(ctrl_pdata, &ctrl_pdata->cabc_off_cmds);
 	}
-#endif
 	pr_info("%s :[MDSS_SDC] CABC: %d\n", __func__,msd.dstat.siop_status);
+
 }
 #endif
 
@@ -269,10 +266,10 @@ void mdss_dsi_himax_panel_reset(struct mdss_panel_data *pdata, int enable)
 			pr_err("%s: Invalid input data\n", __func__);
 			return;
 		}
-
+	
 		ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 					panel_data);
-
+	
 		if (!gpio_is_valid(ctrl_pdata->rst_gpio)) {
 			pr_debug("%s:%d, reset line not configured\n",
 				   __func__, __LINE__);
@@ -281,13 +278,13 @@ void mdss_dsi_himax_panel_reset(struct mdss_panel_data *pdata, int enable)
 
 		pr_debug("%s: enable = %d\n", __func__, enable);
 		if (enable) {
-
+						
 			rc = gpio_tlmm_config(GPIO_CFG(ctrl_pdata->rst_gpio, 0,
 						GPIO_CFG_OUTPUT,GPIO_CFG_PULL_UP,GPIO_CFG_8MA),
 						GPIO_CFG_ENABLE);
 			if (rc)
 				pr_err("disabling rst_gpio failed, rc=%d\n",rc);
-
+			
 			mdelay(5);
 			gpio_set_value((ctrl_pdata->rst_gpio), 1);
 			msleep(50);
@@ -312,7 +309,7 @@ void mdss_dsi_himax_panel_reset(struct mdss_panel_data *pdata, int enable)
 			if (gpio_is_valid(ctrl_pdata->disp_en_gpio))
 				gpio_set_value((ctrl_pdata->disp_en_gpio), 0);
 			mdelay(1);
-
+		
 			rc = gpio_tlmm_config(GPIO_CFG(ctrl_pdata->rst_gpio, 0,
 						GPIO_CFG_OUTPUT,GPIO_CFG_NO_PULL,GPIO_CFG_2MA),
 						GPIO_CFG_ENABLE);
@@ -447,7 +444,7 @@ extern void isl98611_backlight_initialize(void);
 static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl = NULL;
-#if defined(CONFIG_ESD_ERR_FG_RECOVERY) || defined(CONFIG_CABC_TUNING_HX8394C)
+#if defined(CONFIG_ESD_ERR_FG_RECOVERY)
 	static int first_boot = 1;
 #endif
 	msd.mfd = (struct msm_fb_data_type *)registered_fb[0]->par;
@@ -467,27 +464,6 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 
 	if (ctrl->on_cmds.cmd_cnt)
 		mdss_dsi_panel_cmds_send(ctrl, &ctrl->on_cmds);
-#if defined(CONFIG_CABC_TUNING_HX8394C)
-	if( first_boot != 1 && msd.dstat.siop_status == 1){
-		printk("%s: cause siop_status == 1, set CABC \n", __func__);
-		mdss_dsi_panel_cmds_send(ctrl, &ctrl->cabc_on_cmds);
-
-		if(bl_level_cabc_on <84)
-			mdss_dsi_panel_cmds_send(ctrl, &ctrl->cabc_duty_72);
-		else if(bl_level_cabc_on >= 84 && bl_level_cabc_on < 98)
-			mdss_dsi_panel_cmds_send(ctrl, &ctrl->cabc_duty_74);
-		else if(bl_level_cabc_on >= 98 && bl_level_cabc_on < 112)
-			mdss_dsi_panel_cmds_send(ctrl, &ctrl->cabc_duty_78);
-		else
-			mdss_dsi_panel_cmds_send(ctrl, &ctrl->cabc_duty_82);
-
-			mdss_dsi_panel_bl_ctrl(pdata,bl_level_cabc_on);
-	} else
-		printk("%s: siop_status != 1, skip CABC setting. \n", __func__);
-#if !defined(CONFIG_ESD_ERR_FG_RECOVERY)
-	first_boot = 0;
-#endif
-#endif
 
 	msd.mfd->resume_state = MIPI_RESUME_STATE;
 
@@ -500,14 +476,14 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 
 		INIT_WORK(&err_fg_work, err_fg_work_func);
 
-		rc = request_threaded_irq(err_fg_gpio, NULL, err_fg_irq_handler,
+		rc = request_threaded_irq(err_fg_gpio, NULL, err_fg_irq_handler, 
 			IRQF_TRIGGER_LOW | IRQF_ONESHOT, "esd_detect", NULL);
 		if (rc) {
 			pr_err("%s : Failed to request_irq. :ret=%d", __func__, rc);
 		}
 		first_boot = 0;
 	}
-
+	
 	enable_irq(err_fg_gpio);
 #endif
 
@@ -772,7 +748,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 							__func__, __LINE__);
 			return -EINVAL;
 		}
-
+	
 		pinfo->xres = (!rc ? tmp : 640);
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-panel-height", &tmp);
 		if (rc) {
@@ -781,7 +757,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 			return -EINVAL;
 		}
 		pinfo->yres = (!rc ? tmp : 480);
-
+	
 		rc = of_property_read_u32(np,
 			"qcom,mdss-pan-physical-width-dimension", &tmp);
 		pinfo->physical_width = (!rc ? tmp : 0);
@@ -819,7 +795,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 			pinfo->mipi.dst_format =
 				DSI_VIDEO_DST_FORMAT_RGB888;
 		}
-
+		
 		pdest = of_get_property(np,
 				"qcom,mdss-dsi-panel-destination", NULL);
 		if (strlen(pdest) != 9) {
@@ -835,7 +811,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 								__func__);
 			pinfo->pdest = DISPLAY_1;
 		}
-
+	
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-h-front-porch", &tmp);
 		pinfo->lcdc.h_front_porch = (!rc ? tmp : 6);
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-h-back-porch", &tmp);
@@ -853,7 +829,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 		rc = of_property_read_u32(np,
 			"qcom,mdss-dsi-underflow-color", &tmp);
 		pinfo->lcdc.underflow_clr = (!rc ? tmp : 0xff);
-
+	
 		rc = of_property_read_u32(np,
 			"qcom,mdss-dsi-border-color", &tmp);
 		pinfo->lcdc.border_clr = (!rc ? tmp : 0);
@@ -871,7 +847,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 				rc = of_property_read_u32(np,
 					"qcom,mdss-dsi-bl-pmic-pwm-frequency", &tmp);
 				if (rc) {
-					pr_err("%s:%d, Error, panel pwm_period\n",
+					pr_err("%s:%d, Error, panel pwm_period\n",		
 						__func__, __LINE__);
 				return -EINVAL;
 				}
@@ -893,16 +869,16 @@ static int mdss_panel_parse_dt(struct device_node *np,
 		}
 		rc = of_property_read_u32(np, "qcom,mdss-brightness-max-level", &tmp);
 		pinfo->brightness_max = (!rc ? tmp : MDSS_MAX_BL_BRIGHTNESS);
-
+	
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-bl-min-level", &tmp);
 		pinfo->bl_min = (!rc ? tmp : 0);
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-bl-max-level", &tmp);
 		pinfo->bl_max = (!rc ? tmp : 255);
 		ctrl_pdata->bklt_max = pinfo->bl_max;
-
+	
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-interleave-mode", &tmp);
 		pinfo->mipi.interleave_mode = (!rc ? tmp : 0);
-
+	 
 		pinfo->mipi.vsync_enable = of_property_read_bool(np,
 			"qcom,mdss-dsi-te-check-enable");
 		pinfo->mipi.hw_vsync_mode = of_property_read_bool(np,
@@ -910,7 +886,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 		rc = of_property_read_u32(np,
 			"qcom,mdss-dsi-h-sync-pulse", &tmp);
 		pinfo->mipi.pulse_mode_hsa_he = (!rc ? tmp : false);
-
+	
 		pinfo->mipi.hfp_power_stop = of_property_read_bool(np,
 			"qcom,mdss-dsi-hfp-power-mode");
 		pinfo->mipi.hsa_power_stop = of_property_read_bool(np,
@@ -925,36 +901,36 @@ static int mdss_panel_parse_dt(struct device_node *np,
 			"qcom,mdss-dsi-traffic-mode", &tmp);
 		pinfo->mipi.traffic_mode =
 				(!rc ? tmp : DSI_NON_BURST_SYNCH_PULSE);
-
+	
 		rc = of_property_read_u32(np,
 			"qcom,mdss-dsi-te-dcs-command", &tmp);
 		pinfo->mipi.insert_dcs_cmd =
 				(!rc ? tmp : 1);
-
+	
 		rc = of_property_read_u32(np,
 			"qcom,mdss-dsi-te-v-sync-continue-lines", &tmp);
 		pinfo->mipi.wr_mem_continue =
 				(!rc ? tmp : 0x3c);
-
+	
 		rc = of_property_read_u32(np,
 			"qcom,mdss-dsi-te-v-sync-rd-ptr-irq-line", &tmp);
 		pinfo->mipi.wr_mem_start =
 				(!rc ? tmp : 0x2c);
-
+	
 		rc = of_property_read_u32(np,
 			"qcom,mdss-dsi-te-pin-select", &tmp);
 		pinfo->mipi.te_sel =
 				(!rc ? tmp : 1);
-
+	
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-virtual-channel-id", &tmp);
 		pinfo->mipi.vc = (!rc ? tmp : 0);
-
+	
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-color-order", &tmp);
 		pinfo->mipi.rgb_swap = (!rc ? tmp : DSI_RGB_SWAP_RGB);
-
+		
 		rc = of_property_read_u32(np, "qcom,mdss-force-clk-lane-hs", &tmp);
 		pinfo->mipi.force_clk_lane_hs = (!rc ? tmp : 0);
-
+	
 		pinfo->mipi.data_lane0 = of_property_read_bool(np,
 			"qcom,mdss-dsi-lane-0-state");
 		pinfo->mipi.data_lane1 = of_property_read_bool(np,
@@ -963,17 +939,17 @@ static int mdss_panel_parse_dt(struct device_node *np,
 			"qcom,mdss-dsi-lane-2-state");
 		pinfo->mipi.data_lane3 = of_property_read_bool(np,
 			"qcom,mdss-dsi-lane-3-state");
-
+	
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-lane-map", &tmp);
 		pinfo->mipi.dlane_swap = (!rc ? tmp : 0);
-
+	
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-t-clk-pre", &tmp);
 		pinfo->mipi.t_clk_pre = (!rc ? tmp : 0x24);
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-t-clk-post", &tmp);
 		pinfo->mipi.t_clk_post = (!rc ? tmp : 0x03);
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-stream", &tmp);
 		pinfo->mipi.stream = (!rc ? tmp : 0);
-
+	
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-mdp-trigger", &tmp);
 		pinfo->mipi.mdp_trigger =
 				(!rc ? tmp : DSI_CMD_TRIGGER_SW);
@@ -983,7 +959,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 			pinfo->mipi.mdp_trigger =
 						DSI_CMD_TRIGGER_SW;
 		}
-
+	
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-dma-trigger", &tmp);
 		pinfo->mipi.dma_trigger =
 				(!rc ? tmp : DSI_CMD_TRIGGER_SW);
@@ -1002,13 +978,13 @@ static int mdss_panel_parse_dt(struct device_node *np,
 		} else {
 			pinfo->mode_gpio_state = MODE_GPIO_NOT_VALID;
 		}
-
+	
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-panel-frame-rate", &tmp);
 		pinfo->mipi.frame_rate = (!rc ? tmp : 60);
-
+	
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-panel-clock-rate", &tmp);
 		pinfo->clk_rate = (!rc ? tmp : 0);
-
+	
 		data = of_get_property(np,
 			"qcom,platform-strength-ctrl", &len);
 		if ((!data) || (len != 2)) {
@@ -1018,7 +994,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 		}
 		pinfo->mipi.dsi_phy_db.strength[0] = data[0];
 		pinfo->mipi.dsi_phy_db.strength[1] = data[1];
-
+	
 		data = of_get_property(np,
 			"qcom,platform-regulator-settings", &len);
 		if ((!data) || (len != 7)) {
@@ -1030,7 +1006,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 			pinfo->mipi.dsi_phy_db.regulator[i]
 				= data[i];
 		}
-
+	
 		data = of_get_property(np, "qcom,mdss-dsi-panel-timings", &len);
 		if ((!data) || (len != 12)) {
 			pr_err("%s:%d, Unable to read Phy timing settings",
@@ -1039,18 +1015,18 @@ static int mdss_panel_parse_dt(struct device_node *np,
 		}
 		for (i = 0; i < len; i++)
 			pinfo->mipi.dsi_phy_db.timing[i] = data[i];
-
+	
 		pinfo->mipi.lp11_init = of_property_read_bool(np,
 						"qcom,mdss-dsi-lp11-init");
 		rc = of_property_read_u32(np, "qcom,mdss-dsi-init-delay-us", &tmp);
 		pinfo->mipi.init_delay = (!rc ? tmp : 0);
-
+	
 		mdss_dsi_parse_fbc_params(np, pinfo);
 		mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->on_cmds,
 			"qcom,mdss-dsi-on-command", "qcom,mdss-dsi-on-command-state");
 		mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->off_cmds,
 			"qcom,mdss-dsi-off-command", "qcom,mdss-dsi-off-command-state");
-#if defined(CONFIG_CABC_TUNING_HX8394C)
+#if defined(CONFIG_MDNIE_TFT_MSM8X26)
 		mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->cabc_on_cmds,
 			"samsung,cabc-on-cmds", "qcom,mdss-dsi-on-command-state");
 		mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->cabc_off_cmds,
@@ -1076,7 +1052,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 								__func__);
 			ctrl_pdata->dsi_on_state = DSI_LP_MODE;
 		}
-
+	
 		off_cmds_state = of_get_property(np, "qcom,mdss-dsi-off-command-state", NULL);
 		if (!strncmp(off_cmds_state, "dsi_lp_mode", 11)) {
 			ctrl_pdata->dsi_off_state = DSI_LP_MODE;
@@ -1087,7 +1063,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 								__func__);
 			ctrl_pdata->dsi_off_state = DSI_LP_MODE;
 		}
-
+	
 		return 0;
 	error:
 		return -EINVAL;
@@ -1132,14 +1108,14 @@ static ssize_t mdss_siop_enable_show(struct device *dev,
 static ssize_t mdss_siop_enable_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t size)
 {
-
+	
 	if (sysfs_streq(buf, "1") && !msd.dstat.siop_status)
 		msd.dstat.siop_status = true;
 	else if (sysfs_streq(buf, "0") && msd.dstat.siop_status)
 		msd.dstat.siop_status = false;
 	else
 		pr_info("%s: Invalid argument!!", __func__);
-
+	
 	return size;
 
 }
@@ -1490,7 +1466,7 @@ static int __init detect_lcd_panel_vendor(char* read_id)
 	lcd_connected_status = ((lcd_id&0xFFFFFF)!=0x000000);
 
 	pr_err("%s: detected panel vendor --> %s [0x%x] lcd_attached = %d\n", __func__, panel_vendor, lcd_id,lcd_connected_status);
-
+	
 	return 1;
 }
 __setup("lcd_id=0x", detect_lcd_panel_vendor);
@@ -1602,7 +1578,7 @@ int mdss_dsi_panel_init(struct device_node *node,
 
 	if (rc) {
 		pr_info("sysfs create fail-%s\n",dev_attr_lcd_power.attr.name);
-
+	
 	}
 	rc = sysfs_create_file(&lcd_device->dev.kobj,
 					&dev_attr_lcd_type.attr);
@@ -1611,7 +1587,7 @@ int mdss_dsi_panel_init(struct device_node *node,
 				dev_attr_lcd_type.attr.name);
 	}
 
-
+	
 	rc= sysfs_create_file(&lcd_device->dev.kobj,
 					&dev_attr_siop_enable.attr);
 	if (rc) {

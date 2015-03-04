@@ -45,12 +45,8 @@
 #define VENDOR_NAME	"INVENSENSE"
 #endif
 
-#define SHEALTH_VERSION	"29-May-2014 Rev 01"
+#define SHEALTH_VERSION	"19-May-2014 Rev 01"
 #define MAX_BOARD_REV	0x1
-
-#if defined(CONFIG_MACH_SLTE_ATT) || defined(CONFIG_MACH_SLTE_TMO)
-extern unsigned int system_rev;
-#endif
 
 s64 get_time_ns(void)
 {
@@ -254,82 +250,6 @@ static int accel_open_calibration(struct inv_mpu_state *st)
 	pr_info("%s: (%d,%d,%d)\n", __func__,
 		st->cal_data[0], st->cal_data[1],
 			st->cal_data[2]);
-
-	filp_close(cal_filp, current->files);
-done:
-	set_fs(old_fs);
-	return err;
-}
-
-static int gyro_open_calibration(struct inv_mpu_state *st)
-{
-	struct file *cal_filp = NULL;
-	int err = 0;
-	mm_segment_t old_fs;
-
-	old_fs = get_fs();
-	set_fs(KERNEL_DS);
-
-	cal_filp = filp_open(MPU6500_GYRO_CAL_PATH,
-		O_RDONLY, S_IRUGO | S_IWUSR | S_IWGRP);
-	if (IS_ERR(cal_filp)) {
-		pr_err("[SENSOR] %s: - Can't open calibration file\n", __func__);
-		set_fs(old_fs);
-		err = PTR_ERR(cal_filp);
-		goto done;
-	}
-
-	err = cal_filp->f_op->read(cal_filp,
-		(char *)&st->gyro_bias, 3 * sizeof(int),
-			&cal_filp->f_pos);
-	if (err != 3 * sizeof(int)) {
-		pr_err("[SENSOR] %s: - Can't read the cal data from file\n", __func__);
-		err = -EIO;
-	}
-
-	pr_info("[SENSOR] %s: - (%d,%d,%d)\n", __func__,
-		st->gyro_bias[0], st->gyro_bias[1],	st->gyro_bias[2]);
-
-	filp_close(cal_filp, current->files);
-done:
-	set_fs(old_fs);
-	return err;
-}
-
-static int gyro_do_calibrate(struct inv_mpu_state *st)
-{
-	struct file *cal_filp;
-	int err;
-	mm_segment_t old_fs;
-
-	/* selftest was doing 2000dps condition, change to 500dps */
-	st->gyro_bias[0] = st->gyro_bias[0] << 2;
-	st->gyro_bias[1] = st->gyro_bias[1] << 2;
-	st->gyro_bias[2] = st->gyro_bias[2] << 2;
-
-	pr_info("[SENSOR] %s: - cal data (%d,%d,%d)\n", __func__,
-		st->gyro_bias[0], st->gyro_bias[1], st->gyro_bias[2]);
-
-	old_fs = get_fs();
-	set_fs(KERNEL_DS);
-
-	cal_filp = filp_open(MPU6500_GYRO_CAL_PATH,
-			O_CREAT | O_TRUNC | O_WRONLY,
-			S_IRUGO | S_IWUSR | S_IWGRP);
-	if (IS_ERR(cal_filp)) {
-		pr_err("[SENSOR] %s: - Can't open calibration file\n", __func__);
-		set_fs(old_fs);
-		err = PTR_ERR(cal_filp);
-		goto done;
-	}
-
-	err = cal_filp->f_op->write(cal_filp,
-		(char *)&st->gyro_bias, 3 * sizeof(int),
-			&cal_filp->f_pos);
-	if (err != 3 * sizeof(int)) {
-		pr_err("[SENSOR] %s: - Can't write the cal data to file\n", __func__);
-		err = -EIO;
-	}
 
 	filp_close(cal_filp, current->files);
 done:
@@ -966,8 +886,7 @@ static ssize_t _dmp_shealth_store(struct device *dev,
 	switch (this_attr->address) {
 	case ATTR_DMP_SHEALTH_ENABLE:
 	{
-		if(!!st->ped.on)
-			result = inv_enable_shealth(st, !!data, true);
+		result = inv_enable_shealth(st, !!data, true);
 		if (result)
 			goto dmp_mem_store_fail;
 	}
@@ -1040,10 +959,8 @@ static ssize_t _dmp_mem_store(struct device *dev,
 		result = inv_enable_pedometer(st, !!data);
 
 		/*reset internal pedometer step buffer*/
-		if (!!data)
+		if (data)
 			result = inv_reset_pedometer_internal_timer(st);
-		else
-			st->shealth.interrupt_mask = 0;
 		if (result)
 			goto dmp_mem_store_fail;
 
@@ -1054,8 +971,8 @@ static ssize_t _dmp_mem_store(struct device *dev,
 
 		st->ped.on = !!data;
 
-		/*change threshold to 2.5Hz*/
-		inv_set_shealth_walk_run_thresh(st, 2500);
+		/*change threshold*/
+		inv_set_shealth_walk_run_thresh(st, 2600);
 
 		break;
 	}
@@ -1269,16 +1186,13 @@ static void inv_shealth_timer_func(unsigned long data)
 static void inv_shealth_sched_work(struct work_struct *data)
 {
 	struct inv_mpu_state *st =
-		(struct inv_mpu_state *)container_of(data,
-		struct inv_mpu_state, shealth.work);
-	struct iio_dev *indio_dev = (struct iio_dev *)
-				i2c_get_clientdata(st->client);
+		(struct inv_mpu_state *)container_of(data, struct inv_mpu_state, shealth.work);
+	struct iio_dev *indio_dev = (struct iio_dev*) i2c_get_clientdata(st->client);
 
 	pr_info("%s\n", __func__);
 
 	mutex_lock(&indio_dev->mlock);
-	if ((st->shealth.state == SHEALTH_STAT_WALK) &&
-						(!st->shealth.enabled)) {
+	if(st->shealth.state == SHEALTH_STAT_WALK && !st->shealth.enabled) {
 		st->shealth.state = SHEALTH_STAT_STOP;
 		st->shealth.interrupt_mask |= SHEALTH_INT_STOP_WALKING;
 		complete(&st->shealth.wait);
@@ -1311,10 +1225,9 @@ static ssize_t inv_attr64_show(struct device *dev,
 		if(tmp != st->shealth.step_count) {
 			bool needs_to_complete = false;
 
-			pr_info("shealth step counter = %lld\n", tmp);
-			if (!st->shealth.enabled) {
-				st->shealth.interrupt_mask |=
-						SHEALTH_INT_STEP_COUNTER;
+			pr_info("shealth step counter = %lld\n", tmp );
+			if(!st->shealth.enabled) {
+				st->shealth.interrupt_mask |= SHEALTH_INT_STEP_COUNTER;
 
 				/*enable stop counter*/
 				del_timer(&st->shealth.timer);
@@ -1328,9 +1241,8 @@ static ssize_t inv_attr64_show(struct device *dev,
 
 			if(st->shealth.state == SHEALTH_STAT_STOP) {
 				st->shealth.state = SHEALTH_STAT_WALK;
-				if (!st->shealth.enabled) {
-					st->shealth.interrupt_mask |=
-						SHEALTH_INT_START_WALKING;
+				if(!st->shealth.enabled) {
+					st->shealth.interrupt_mask |= SHEALTH_INT_START_WALKING;
 					needs_to_complete = true;
 				}
 			}
@@ -1695,23 +1607,24 @@ static ssize_t inv_attr_show(struct device *dev,
 		s64 start_time_timeofday = 0, end_time_timeofday = 0;
 		bool is_data_ready = false;
 
-		if (st->shealth.enabled || (st->shealth.stop_timestamp > 0))
+		if(st->shealth.enabled ||st->shealth.stop_timestamp > 0)
 			is_data_ready = true;
 
-		if (is_data_ready) {
-			if (st->shealth.start_timestamp > 0) {
+		if(is_data_ready) {
+			if(st->shealth.start_timestamp > 0)
+			{
 				start_timestamp = st->shealth.start_timestamp;
-					start_time_timeofday =
-					st->shealth.start_time_timeofday;
+				start_time_timeofday = st->shealth.start_time_timeofday;
 			}
 
-			if (st->shealth.stop_timestamp > 0) {
+			if(st->shealth.stop_timestamp > 0)
+			{
 				end_timestamp = st->shealth.stop_timestamp;
-				end_time_timeofday =
-					st->shealth.stop_time_timeofday;
-			} else {
-				end_timestamp =
-					inv_get_shealth_timestamp(st, false);
+				end_time_timeofday = st->shealth.stop_time_timeofday;
+			}
+			else
+			{
+				end_timestamp = inv_get_shealth_timestamp(st, false);
 				end_time_timeofday = get_time_timeofday();
 			}
 		}
@@ -1737,15 +1650,11 @@ static ssize_t inv_attr_show(struct device *dev,
 
 		strcat(buf, "\n");
 
-		pr_info("[INV] Cadence Read : %s\n", buf);
-
-		/*set start_timestamp to interrupt_timestamp
-							for next cadence data*/
-		if (st->shealth.interrupt_timestamp > 0) {
-			st->shealth.start_timestamp =
-					st->shealth.interrupt_timestamp;
-			st->shealth.start_time_timeofday =
-					st->shealth.interrupt_time_timeofday;
+		/*set start_timestamp to interrupt_timestamp for next cadence data*/
+		if(st->shealth.interrupt_timestamp > 0)
+		{
+			st->shealth.start_timestamp = st->shealth.interrupt_timestamp;
+			st->shealth.start_time_timeofday = st->shealth.interrupt_time_timeofday;
 		}
 
 		return strlen(buf);
@@ -1768,10 +1677,8 @@ static ssize_t inv_attr_show(struct device *dev,
 	case ATTR_DMP_SHEALTH_FLUSH_CADENCE:
 	{
 		inv_get_shealth_instant_cadence(st, buf);
-		pr_info("[INV] Cadence Flush : %s\n", buf);
 		inv_clear_shealth_cadence(st);
-		st->shealth.start_timestamp =
-					inv_get_shealth_timestamp(st, true);
+		st->shealth.start_timestamp = inv_get_shealth_timestamp(st, true);
 		st->shealth.stop_timestamp = -1;
 		st->shealth.interrupt_timestamp = -1;
 
@@ -1780,8 +1687,7 @@ static ssize_t inv_attr_show(struct device *dev,
 		st->shealth.interrupt_time_timeofday = -1;
 
 		/* reset interrupt period */
-		inv_set_shealth_interrupt_period(st,
-						st->shealth.interrupt_duration);
+		inv_set_shealth_interrupt_period(st,st->shealth.interrupt_duration);
 		/* reset cadence update timer */
 		inv_reset_shealth_update_timer(st);
 
@@ -1883,17 +1789,18 @@ static ssize_t inv_shealth_int_show(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
 	struct inv_mpu_state *st = iio_priv(dev_get_drvdata(dev));
-	u16 interrupt_mask = 0;
+	//long val;
+	//unsigned long flags;
+	u16 interrupt_mask;
 
-	if(st->ped.on) {
-		pr_info("%s enter \n", __func__);
-		wait_for_completion_interruptible(&st->shealth.wait);
+	pr_info("%s enter \n", __func__);
 
-		interrupt_mask = st->shealth.interrupt_mask;
-		st->shealth.interrupt_mask = 0;
+	wait_for_completion_interruptible(&st->shealth.wait);
 
-		pr_info("%s exit. interrupt_mask:%d \n", __func__, interrupt_mask);
-	}
+	interrupt_mask = st->shealth.interrupt_mask;
+	st->shealth.interrupt_mask = 0;
+
+	pr_info("%s exit. interrupt_mask:%d \n", __func__, interrupt_mask);
 
 
 	return sprintf(buf, "%d\n", interrupt_mask);
@@ -2146,8 +2053,6 @@ static ssize_t _attr_store(struct device *dev,
 		st->self_test.threshold = data;
 	case ATTR_GYRO_ENABLE:
 		st->chip_config.gyro_enable = !!data;
-		if (st->chip_config.gyro_enable)
-			gyro_open_calibration(st);
 		break;
 	case ATTR_GYRO_FIFO_ENABLE:
 		st->sensor[SENSOR_GYRO].on = !!data;
@@ -2643,19 +2548,19 @@ static IIO_DEVICE_ATTR(pedometer_time, S_IRUGO | S_IWUSR, inv_attr64_show,
 static IIO_DEVICE_ATTR(pedometer_counter, S_IRUGO | S_IWUSR, inv_attr64_show,
 	NULL, ATTR_DMP_PEDOMETER_COUNTER);
 
-static IIO_DEVICE_ATTR(shealth_cadence, S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP, inv_attr_show,
+static IIO_DEVICE_ATTR(shealth_cadence, S_IRUGO | S_IWUGO, inv_attr_show,
 	NULL, ATTR_DMP_SHEALTH_CADENCE);
-static IIO_DEVICE_ATTR(shealth_cadence_enable, S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP, inv_attr_show,
+static IIO_DEVICE_ATTR(shealth_cadence_enable, S_IRUGO | S_IWUGO, inv_attr_show,
 	inv_dmp_shealth_store, ATTR_DMP_SHEALTH_ENABLE);
-static IIO_DEVICE_ATTR(shealth_int_period, S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP, inv_attr_show,
+static IIO_DEVICE_ATTR(shealth_int_period, S_IRUGO | S_IWUGO, inv_attr_show,
 	inv_dmp_shealth_store, ATTR_DMP_SHEALTH_INTERRUPT_PERIOD);
-static IIO_DEVICE_ATTR(shealth_instant_cadence, S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP, inv_attr_show,
+static IIO_DEVICE_ATTR(shealth_instant_cadence, S_IRUGO | S_IWUGO, inv_attr_show,
 	NULL, ATTR_DMP_SHEALTH_INSTANT_CADENCE);
-static IIO_DEVICE_ATTR(shealth_flush_cadence, S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP, inv_attr_show,
+static IIO_DEVICE_ATTR(shealth_flush_cadence, S_IRUGO | S_IWUGO, inv_attr_show,
 	NULL, ATTR_DMP_SHEALTH_FLUSH_CADENCE);
-static IIO_DEVICE_ATTR(shealth_freq_threshold, S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP, inv_attr_show,
+static IIO_DEVICE_ATTR(shealth_freq_threshold, S_IRUGO | S_IWUGO, inv_attr_show,
 	inv_dmp_shealth_store, ATTR_DMP_SHEALTH_FREQ_THRESHOLD);
-static IIO_DEVICE_ATTR(shealth_timer, S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP, inv_attr_show,
+static IIO_DEVICE_ATTR(shealth_timer, S_IRUGO | S_IWUGO, inv_attr_show,
 	inv_dmp_shealth_store, ATTR_DMP_SHEALTH_TIMER);
 
 
@@ -3463,15 +3368,10 @@ retry:
 			pr_err("%s : bypass error", __func__);
 	}
 
-	if((result | hw_result) == 0) {
+	if((result | hw_result) == 0)
 		pr_info("%s : selftest success. ret:%d\n", __func__, hw_result | hw_result);
-		gyro_do_calibrate(st);
-	} else {
+	else
 		pr_info("%s : selftest failed. ret:%d\n", __func__, hw_result | hw_result);
-		st->gyro_bias[0] = 0;
-		st->gyro_bias[1] = 0;
-		st->gyro_bias[2] = 0;
-	}
 
 	pr_info("%s : %d.%03d,%d.%03d,%d.%03d,\n", __func__,
 		(int)abs(scaled_gyro_bias[0] / 1000),
@@ -3900,22 +3800,9 @@ static int inv_mpu_parse_dt(struct mpu_platform_data *data, struct device *dev)
 		pr_err("%s : get orientation(%d) error\n", __func__, orientation[0]);
 		return -ENODEV;
 	}
-#if defined(CONFIG_MACH_SLTE_ATT) || defined(CONFIG_MACH_SLTE_TMO)
-	if (system_rev!=1)
-	{
-		for (i = 0 ; i < 9 ; i++)
-			data->orientation[i] = ((s8)orientation[i]) - 1;
-	}
-	else
-	{
-		u32 orientation_att[9] = {1,0,0,0,1,0,0,0,1};
-		for (i = 0 ; i < 9 ; i++)
-			data->orientation[i] = ((s8)orientation_att[i]);
-	}
-#else
 	for (i = 0 ; i < 9 ; i++)
 		data->orientation[i] = ((s8)orientation[i]) - 1;
-#endif
+
 	return 0;
 }
 

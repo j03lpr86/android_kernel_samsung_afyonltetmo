@@ -17,7 +17,9 @@
 #include "msm_camera_io_util.h"
 #include "msm_camera_i2c_mux.h"
 
+//#ifndef CONFIG_MSMB_CAMERA_DEBUG
 //#define CONFIG_MSMB_CAMERA_DEBUG
+//#endif
 
 #undef CDBG
 #ifdef CONFIG_MSMB_CAMERA_DEBUG
@@ -33,7 +35,6 @@ uint16_t back_cam_fw_version = 0;
 #endif
 int led_torch_en;
 int led_flash_en;
-struct task_struct	*qdaemon_task;
 
 static int32_t msm_sensor_get_dt_data(struct device_node *of_node,
 	struct msm_sensor_ctrl_t *s_ctrl)
@@ -259,6 +260,7 @@ int msm_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl,
 	struct msm_camera_i2c_client *sensor_i2c_client)
 {
 	int rc = 0;
+        pr_err("%s\n", __func__);
 	if (!power_info || !sensor_i2c_client) {
 		pr_err("%s:%d failed: power_info %p sensor_i2c_client %p\n",
 			__func__, __LINE__, power_info, sensor_i2c_client);
@@ -268,7 +270,7 @@ int msm_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl,
 	if (s_ctrl->sensor_state == MSM_SENSOR_POWER_DOWN) {
 		pr_err("%s:%d invalid sensor state %d\n", __func__, __LINE__,
 			s_ctrl->sensor_state);
-		return -EINVAL;
+		return 0;
 	}	
 	
 	pr_warn("[%s:%d]", __func__, __LINE__);
@@ -286,6 +288,7 @@ int msm_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl,
 {
 	int rc;
 
+	pr_err("%s\n", __func__);
 	if (!s_ctrl || !power_info || !sensor_i2c_client || !slave_info ||
 		!sensor_name) {
 		pr_err("%s:%d failed: %p %p %p %p %p\n",
@@ -300,8 +303,6 @@ int msm_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl,
 		return -EINVAL;
 	}
 
-	qdaemon_task = current;
-
 	pr_warn("[%s:%d] %s", __func__, __LINE__,
 		sensor_name);
 	rc = msm_camera_power_up(power_info, s_ctrl->sensor_device_type,
@@ -311,12 +312,13 @@ int msm_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl,
             return rc;
         }
 	s_ctrl->sensor_state = MSM_SENSOR_POWER_UP;
-#if 0
+	pr_err("%s: %d\n", __func__, s_ctrl->sensor_state);
+#if 1
 	rc = msm_sensor_check_id(s_ctrl, sensor_i2c_client, slave_info,
 		sensor_name);
-	if (rc < 0)
-		msm_sensor_power_down(power_info, s_ctrl->sensor_device_type,
-		sensor_i2c_client);
+//	if (rc < 0)
+//		msm_sensor_power_down(power_info, s_ctrl->sensor_device_type,
+//		sensor_i2c_client);
 #endif
 
 	return rc;
@@ -328,27 +330,95 @@ int msm_sensor_match_id(struct msm_camera_i2c_client *sensor_i2c_client,
 {
 	int rc = 0;
 	uint16_t chipid = 0;
+	enum msm_camera_i2c_data_type data_type = MSM_CAMERA_I2C_WORD_DATA;
+
 	if (!sensor_i2c_client || !slave_info || !sensor_name) {
 		pr_err("%s:%d failed: %p %p %p\n",
 			__func__, __LINE__, sensor_i2c_client, slave_info,
 			sensor_name);
 		return -EINVAL;
 	}
+	printk("%s sensor_name=%s\n", __func__, sensor_name);
+
+	if (sensor_i2c_client->data_type == MSM_CAMERA_I2C_BYTE_DATA)
+		data_type = MSM_CAMERA_I2C_BYTE_DATA;
+
+
+	pr_info("func %s line %d sid = 0x%X sensorid = 0x%X DATA TYPE = %d\n",
+		__func__, __LINE__, sensor_i2c_client->cci_client->sid,
+		slave_info->sensor_id, sensor_i2c_client->data_type);	
+
 	rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
 		sensor_i2c_client, slave_info->sensor_id_reg_addr,
-			&chipid, MSM_CAMERA_I2C_WORD_DATA);
-	if (rc < 0) {
-		pr_err("%s: %s: read id failed\n", __func__, sensor_name);
-		return rc;
-	}
+			&chipid, data_type);
 
-	CDBG("%s: read id: %x expected id %x:\n", __func__, chipid,
-		slave_info->sensor_id);
+	pr_info("func %s line %d chipid = 0x%X\n",
+		__func__, __LINE__, chipid);
+
 	if (chipid != slave_info->sensor_id) {
-		pr_err("msm_sensor_match_id chip id doesnot match\n");
-		return -ENODEV;
+	 
+	    sensor_i2c_client->cci_client->sid = 0x6E >> 1;
+	    slave_info->sensor_id = 0x5B02;
+		chipid = 0;
+		usleep(10);
+		pr_info("%s Slave ID1 =%x Sensor_ID1=%x\n", __func__, sensor_i2c_client->cci_client->sid, slave_info->sensor_id); 
+	    rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
+		 sensor_i2c_client, slave_info->sensor_id_reg_addr,
+			&chipid, MSM_CAMERA_I2C_WORD_DATA);
+	   pr_info("%s: read id1: %x expected id1 %x:\n", __func__, chipid,
+		slave_info->sensor_id);
+		if (chipid != slave_info->sensor_id) {
+			sensor_i2c_client->cci_client->sid = 0x20 >> 1;
+			slave_info->sensor_id = 0x5B02;
+			chipid = 0;
+			pr_info("%s Slave ID2 =%x Sensor_ID2=%x\n", __func__, sensor_i2c_client->cci_client->sid, slave_info->sensor_id); 
+			rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
+			 sensor_i2c_client, slave_info->sensor_id_reg_addr,
+				&chipid, MSM_CAMERA_I2C_WORD_DATA);
+				pr_err("%s: read id2: %x expected id2 %x:\n", __func__, chipid,
+		slave_info->sensor_id);
+			if (chipid != slave_info->sensor_id) {
+				sensor_i2c_client->cci_client->sid = 0x20 >> 1;
+				slave_info->sensor_id = 0x5B01;
+				chipid = 0;
+				printk("%s Slave ID3 =%x Sensor_ID3=%x\n", __func__, sensor_i2c_client->cci_client->sid, slave_info->sensor_id); 
+				rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
+				 sensor_i2c_client, slave_info->sensor_id_reg_addr,
+					&chipid, MSM_CAMERA_I2C_WORD_DATA);
+					pr_err("%s: read id3: %x expected id3 %x:\n", __func__, chipid,
+		slave_info->sensor_id);
+			}
+
+			if (chipid != slave_info->sensor_id) {
+				sensor_i2c_client->cci_client->sid = 0x40 >> 1;
+#if defined(CONFIG_MACH_CRATERQ_CHN_OPEN)
+				slave_info->sensor_id = 0xB401;
+#else
+				slave_info->sensor_id = 0x5B01;
+#endif
+				chipid = 0;
+				pr_info("%s Slave ID3 =%x Sensor_ID3=%x\n", __func__, sensor_i2c_client->cci_client->sid, slave_info->sensor_id); 
+				rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
+				 sensor_i2c_client, slave_info->sensor_id_reg_addr,
+					&chipid, MSM_CAMERA_I2C_WORD_DATA);
+					pr_err("%s: read id3: %x expected id3 %x:\n", __func__, chipid,
+		slave_info->sensor_id);
+			}
+		}
+		
 	}
-	return rc;
+    pr_info("rc == %d \n", rc);
+	pr_info("%s: read id: %x expected id %x:\n", __func__, chipid,
+		slave_info->sensor_id);
+	pr_warn("%s: read id: %x expected id %x:\n", __func__, chipid,
+		slave_info->sensor_id);
+	pr_info("%s: read id: %x expected id %x:\n", __func__, chipid,
+		slave_info->sensor_id);
+
+	if (chipid != slave_info->sensor_id) {
+		pr_info("msm_sensor_match_id chip id doesnot match\n");
+	}
+	return 0;
 }
 
 static struct msm_sensor_ctrl_t *get_sctrl(struct v4l2_subdev *sd)
@@ -394,6 +464,14 @@ static long msm_sensor_subdev_ioctl(struct v4l2_subdev *sd,
 	case MSM_SD_SHUTDOWN:
 		pr_err("%s:%d MSM_SD_SHUTDOWN\n", __func__, __LINE__);
 		return 0;
+	case VIDIOC_MSM_SENSOR_NATIVE_CMD:
+		if( s_ctrl->func_tbl->sensor_native_control != NULL )
+			return s_ctrl->func_tbl->sensor_native_control(s_ctrl, argp);
+		else
+			pr_err("s_ctrl->func_tbl->sensor_native_control is NULL\n");
+	case VIDIOC_MSM_SENSOR_GET_EXIF_DATA:
+		    return s_ctrl->func_tbl->sensor_get_exif_data(s_ctrl, argp);
+
 	default:
 		return -ENOIOCTLCMD;
 	}
@@ -647,7 +725,6 @@ int msm_sensor_config(struct msm_sensor_ctrl_t *s_ctrl, void __user *argp)
 		}
 		break;
 	}	
-
 	case CFG_WRITE_I2C_SEQ_ARRAY: {
 		struct msm_camera_i2c_seq_reg_setting conf_array;
 		struct msm_camera_i2c_seq_reg_array *reg_setting = NULL;
@@ -742,6 +819,8 @@ int msm_sensor_config(struct msm_sensor_ctrl_t *s_ctrl, void __user *argp)
 			rc = -EFAULT;
 			break;
 		}
+		kfree(stop_setting->reg_setting);
+		stop_setting->reg_setting =NULL;
 		break;
 	}
 	case CFG_SET_GPIO_STATE: {
@@ -762,6 +841,105 @@ int msm_sensor_config(struct msm_sensor_ctrl_t *s_ctrl, void __user *argp)
 			gpio_config.config_val);
 		break;
 	}
+
+    // Randy 10.08 s [
+	case CFG_SET_SENSOR_OTP_CAL: {
+        const uint16_t otp_start = 0xa3d, otp_end = 0xa42;
+		uint16_t otp_cal_data[6], temp_data;
+		int idx = 0;
+        if (s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_write(
+            s_ctrl->sensor_i2c_client,
+            0x0A02, 0x0F, // Set the PAGE15 of OTP  set read mode of NVM controller Interface
+            MSM_CAMERA_I2C_BYTE_DATA) < 0) {
+          pr_err("%s:%d Failed I2C write\n", __func__, __LINE__);
+		  rc = -EFAULT;
+          break;
+        }
+        if (s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_write(
+            s_ctrl->sensor_i2c_client,
+            0x0A00, 0x01, // Set read mode of NVM controller Interface
+            MSM_CAMERA_I2C_BYTE_DATA) < 0) {
+          pr_err("%s:%d Failed I2C write\n", __func__, __LINE__);
+		  rc = -EFAULT;
+          break;
+        }
+
+        for (i = otp_start; i <= otp_end; i++) {
+          if (s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_read(
+              s_ctrl->sensor_i2c_client, i,
+              &otp_cal_data[idx++], MSM_CAMERA_I2C_BYTE_DATA) < 0) {
+            pr_err("%s:%d Failed I2C read\n", __func__, __LINE__);
+			rc = -EFAULT;
+            break;
+          }
+		  pr_err("%s: 0x%x, 0x%x\n", __func__, i, otp_cal_data[idx - 1]);
+		  if ((i+1)%2) {
+		    temp_data = ((otp_cal_data[idx - 2] << 8) & 0xFF00) |
+			  (otp_cal_data[idx - 1] & 0xFF);
+			// Valid check : +-50%
+		    if (temp_data > 0x180 || temp_data < 0x80) {
+			  pr_err("%s: range over (0x%x)\n", __func__, temp_data);
+			  rc = -EFAULT;
+			  break;
+			}
+		  }
+        }
+		
+        if (s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_write(
+            s_ctrl->sensor_i2c_client,
+            0x0A00, 0x00, // Disable NVM controller
+            MSM_CAMERA_I2C_BYTE_DATA) < 0) {
+          pr_err("%s:%d Failed I2C write\n", __func__, __LINE__);
+		  rc = -EFAULT;
+          break;
+        }
+
+        if (rc >= 0) {
+          if (s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_write(
+              s_ctrl->sensor_i2c_client, 0x020E, otp_cal_data[2], // G msb
+              MSM_CAMERA_I2C_BYTE_DATA) < 0) {
+            pr_err("%s:%d Failed I2C write\n", __func__, __LINE__);
+          }
+          if (s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_write(
+              s_ctrl->sensor_i2c_client, 0x020F, otp_cal_data[3], // G lsb
+              MSM_CAMERA_I2C_BYTE_DATA) < 0) {
+            pr_err("%s:%d Failed I2C write\n", __func__, __LINE__);
+          }
+          if (s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_write(
+              s_ctrl->sensor_i2c_client, 0x0210, otp_cal_data[0], // R msb
+              MSM_CAMERA_I2C_BYTE_DATA) < 0) {
+            pr_err("%s:%d Failed I2C write\n", __func__, __LINE__);
+          }
+          if (s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_write(
+              s_ctrl->sensor_i2c_client, 0x0211, otp_cal_data[1], // R lsb
+              MSM_CAMERA_I2C_BYTE_DATA) < 0) {
+            pr_err("%s:%d Failed I2C write\n", __func__, __LINE__);
+          }
+          if (s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_write(
+              s_ctrl->sensor_i2c_client, 0x0212, otp_cal_data[4], // B msb
+              MSM_CAMERA_I2C_BYTE_DATA) < 0) {
+            pr_err("%s:%d Failed I2C write\n", __func__, __LINE__);
+          }
+          if (s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_write(
+              s_ctrl->sensor_i2c_client, 0x0213, otp_cal_data[5], // B lsb
+              MSM_CAMERA_I2C_BYTE_DATA) < 0) {
+            pr_err("%s:%d Failed I2C write\n", __func__, __LINE__);
+          }
+          if (s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_write(
+              s_ctrl->sensor_i2c_client, 0x0214, otp_cal_data[2], // G msb
+              MSM_CAMERA_I2C_BYTE_DATA) < 0) {
+            pr_err("%s:%d Failed I2C write\n", __func__, __LINE__);
+          }
+          if (s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_write(
+              s_ctrl->sensor_i2c_client, 0x0215, otp_cal_data[3], // G lsb
+              MSM_CAMERA_I2C_BYTE_DATA) < 0) {
+            pr_err("%s:%d Failed I2C write\n", __func__, __LINE__);
+          }
+        }
+		break;
+	}
+	// ]
+
 	default:
 		rc = -EFAULT;
 		break;
@@ -778,6 +956,11 @@ int msm_sensor_check_id(struct msm_sensor_ctrl_t *s_ctrl,
 	const char *sensor_name)
 {
 	int rc;
+	printk("func %s line %d\n", __func__, __LINE__);
+	pr_warn("func %s line %d\n", __func__, __LINE__);
+	pr_err("func %s line %d slave_info->sensor_id = 0x%X\n",
+		__func__, __LINE__, slave_info->sensor_id);
+
 	if (s_ctrl->func_tbl->sensor_match_id)
 		rc = s_ctrl->func_tbl->sensor_match_id(sensor_i2c_client,
 			slave_info, sensor_name);

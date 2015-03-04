@@ -99,7 +99,7 @@ void mdss_dsi_ctrl_init(struct mdss_dsi_ctrl_pdata *ctrl)
 		ctrl->ndx = DSI_CTRL_1;
 	}
 
-        ctrl->panel_mode = ctrl->panel_data.panel_info.mipi.mode;
+	ctrl->panel_mode = ctrl->panel_data.panel_info.mipi.mode;
 
 	ctrl_list[ctrl->ndx] = ctrl;	/* keep it */
 
@@ -276,8 +276,6 @@ void mdss_dsi_host_init(struct mipi_panel_info *pinfo,
 	dsi_ctrl_base = ctrl_pdata->ctrl_base;
 
 	pinfo->rgb_swap = DSI_RGB_SWAP_RGB;
-
-	ctrl_pdata->panel_mode = pinfo->mode;
 
 	if (pinfo->mode == DSI_VIDEO_MODE) {
 		data = 0;
@@ -1427,8 +1425,7 @@ void mdss_dsi_cmd_mdp_busy(struct mdss_dsi_ctrl_pdata *ctrl)
 										 __func__, ++busy_timeout_cnt);
 			/*WARN(1, "mdss_dsi_cmd_mdp_busy timeout");*/
 
-#if defined (CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQHD_PT_PANEL) || \
-     defined(CONFIG_FB_MSM_MIPI_MAGNA_OCTA_CMD_HD_PT_PANEL)
+#if defined (CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQHD_PT_PANEL)
 			dumpreg();
 			mdp5_dump_regs();
 			mdss_dsi_dump_power_clk(&ctrl->panel_data, 0);
@@ -1688,8 +1685,7 @@ void mdss_dsi_fifo_status(struct mdss_dsi_ctrl_pdata *ctrl)
 		if (status & 0x0080)  /* CMD_DMA_FIFO_UNDERFLOW */
 			dsi_send_events(ctrl, DSI_EV_MDP_FIFO_UNDERFLOW);
 
-#if defined (CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQHD_PT_PANEL) || \
-     defined(CONFIG_FB_MSM_MIPI_MAGNA_OCTA_CMD_HD_PT_PANEL)
+#if defined (CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQHD_PT_PANEL)
 		if (status == 0x99991080) {
 			dumpreg();
 			mdp5_dump_regs();

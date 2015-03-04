@@ -35,9 +35,9 @@
 #define FW_DOWNLOAD_COMPLETE "Complete"
 #define FW_DOWNLOAD_FAIL "FAIL"
 #if defined(CONFIG_MACH_KANAS3G_CTC)
-#define FW_RELEASE_DATE "0528"
+#define FW_RELEASE_DATE "0521"
 #elif defined(CONFIG_SEC_KANAS_PROJECT)
-#define FW_RELEASE_DATE "0526"
+#define FW_RELEASE_DATE "0512"
 #endif
 
 #define FACTORY_BUF_SIZE    (1024)

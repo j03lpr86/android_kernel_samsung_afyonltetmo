@@ -17,4 +17,26 @@
 
 int32_t msm_sensor_driver_probe(void *setting);
 
+struct yuv_userset {
+    unsigned int metering;
+    unsigned int exposure;
+    unsigned int wb;
+    unsigned int iso;
+    unsigned int effect;
+    unsigned int scenemode;
+    unsigned int aeawblock;
+    unsigned int resolution;
+    unsigned int prev_resolution;
+};
+
+struct yuv_ctrl {
+    struct yuv_userset settings;
+    int op_mode;
+    int prev_mode;
+    int streamon;
+    int vtcall_mode;
+    int exif_iso;
+    int exif_shutterspeed ;
+};
+
 #endif

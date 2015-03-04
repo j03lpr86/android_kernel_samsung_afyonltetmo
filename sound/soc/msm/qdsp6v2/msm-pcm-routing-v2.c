@@ -38,6 +38,9 @@
 #include "q6core.h"
 
 extern u32 score;
+#if defined (CONFIG_SND_SOC_MAX98504) || defined (CONFIG_SND_SOC_MAXIM_DSM) // Vinay
+extern int32_t dsm_open(int32_t port_id,uint32_t*  dsm_params, u8* user_params);
+#endif
 struct msm_pcm_routing_bdai_data {
 	u16 port_id; /* AFE port ID */
 	u8 active; /* track if this backend is enabled */
@@ -162,6 +165,45 @@ union srs_trumedia_params_u {
 static union srs_trumedia_params_u msm_srs_trumedia_params[2];
 static int srs_port_id = -1;
 
+#ifdef CONFIG_SND_SOC_MAX98504
+/*---------------------------DSM changes Starts----------------*/
+static int msm_routing_set_dsm_filter(struct snd_kcontrol *kcontrol,
+				struct snd_ctl_elem_value *ucontrol) {
+	uint32_t filter_set;
+    int32_t port_id;
+    filter_set = ucontrol->value.integer.value[0];
+    if(filter_set == 7) {
+        /* corresponds to TxInit in dsm_filter_text array
+        if this array changes then this entry also needs to change */
+        //port_id = 0x1001;//SLIMBUS_0_TX;
+        port_id = 0x1005;//AFE_PORT_ID_TERTIARY_MI2S_TX;
+    } else {
+        port_id = SLIMBUS_0_RX;
+    }
+    //pr_err(" Starting DSM_open set called for port_id %d param value %d -----", port_id, filter_set);
+	mutex_lock(&routing_lock);
+    dsm_open(port_id, &filter_set, NULL);
+	mutex_unlock(&routing_lock);
+	return 0;
+}
+
+static const char *dsm_filter_text[] = { "Disable", "Enable", "GetPrms", \
+                                         "SetPrms", "SetClip", "NoIV",  \
+                                         "RxInit", "TxInit" };
+
+static const struct soc_enum dsm_enum[] = {
+    SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(dsm_filter_text),
+                        dsm_filter_text),
+};
+
+static const struct snd_kcontrol_new dsm_filter_mixer_controls[] = {
+    SOC_ENUM_EXT("DSM", dsm_enum[0],
+    msm_routing_set_dsm_filter,
+    msm_routing_set_dsm_filter),
+};
+
+/*---------------------------DSM changes Ends----------------*/
+#endif
 
 static void srs_send_params(int port_id, unsigned int techs,
 		int param_block_idx)
@@ -205,12 +247,11 @@ int get_topology(int path_type)
 	else
 		topology_id = get_adm_tx_topology();
 
-#ifdef CONFIG_SND_SOC_MAXIM_DSM_COPP
+#ifdef CONFIG_SND_SOC_MAXIM_DSM
 	if((path_type!=ADM_PATH_PLAYBACK) && (topology_id ==0 || 0x00010315/*AUDIO_TX_MONO_COPP*/))	{
 		topology_id = ADM_CUSTOM_PP_TX_TOPO_ID_DYNAMIC;
 	}
 #endif
-
 	if (topology_id  == 0)
 		topology_id = NULL_COPP_TOPOLOGY;
 
@@ -2136,10 +2177,6 @@ static const struct snd_kcontrol_new mmul2_mixer_controls[] = {
 	SOC_SINGLE_EXT("TERT_MI2S_TX", MSM_BACKEND_DAI_TERTIARY_MI2S_TX,
 	MSM_FRONTEND_DAI_MULTIMEDIA2, 1, 0, msm_routing_get_audio_mixer,
 	msm_routing_put_audio_mixer),
-#elif defined(CONFIG_SND_SOC_MAX98504)	
-	SOC_SINGLE_EXT("SEC_MI2S_TX", MSM_BACKEND_DAI_SECONDARY_MI2S_TX,
-	MSM_FRONTEND_DAI_MULTIMEDIA2, 1, 0, msm_routing_get_audio_mixer,
-	msm_routing_put_audio_mixer),
 #endif
 	SOC_SINGLE_EXT("SLIM_0_TX", MSM_BACKEND_DAI_SLIMBUS_0_TX,
 	MSM_FRONTEND_DAI_MULTIMEDIA2, 1, 0, msm_routing_get_audio_mixer,
@@ -3737,8 +3774,6 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"MultiMedia6 Mixer", "SLIM_0_TX", "SLIMBUS_0_TX"},
 #ifdef CONFIG_SND_SOC_MAX98505
 	{"MultiMedia2 Mixer", "TERT_MI2S_TX", "TERT_MI2S_TX"},
-#elif defined(CONFIG_SND_SOC_MAX98504)		
-	{"MultiMedia2 Mixer", "SEC_MI2S_TX", "SEC_MI2S_TX"},
 #endif
 
 	{"INTERNAL_BT_SCO_RX Audio Mixer", "MultiMedia1", "MM_DL1"},
@@ -4411,6 +4446,12 @@ static int msm_routing_probe(struct snd_soc_platform *platform)
 	snd_soc_add_platform_controls(platform, msm_voc_session_controls,
 				      ARRAY_SIZE(msm_voc_session_controls));
 
+#if defined (CONFIG_SND_SOC_MAX98504)
+    /* Adding DSM module */
+    snd_soc_add_platform_controls(platform,
+                dsm_filter_mixer_controls,
+                ARRAY_SIZE(dsm_filter_mixer_controls));
+#endif
 
 	return 0;
 }

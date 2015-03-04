@@ -5197,13 +5197,13 @@ static int voice_send_dha_data(struct voice_data *v)
 	vpcm_dha_param_send_cmd.hdr.src_port = voice_get_idx_for_session(v->session_id);
 	vpcm_dha_param_send_cmd.hdr.dest_port = cvp_handle;
 	vpcm_dha_param_send_cmd.hdr.token = 0;
-#if defined(CONFIG_MACH_S3VE3G_EUR) || defined(CONFIG_MACH_MS01_EUR_3G)
+#if defined(CONFIG_MACH_S3VE3G_EUR) || defined(CONFIG_MACH_MS01_EUR_3G) || defined(CONFIG_MACH_MS01_EUR_LTE)
 	vpcm_dha_param_send_cmd.hdr.opcode = VSS_ICOMMON_CMD_SET_UI_PROPERTY;
 #else
 	vpcm_dha_param_send_cmd.hdr.opcode = VOICE_CMD_SET_PARAM;
 #endif
 
-#ifndef CONFIG_MACH_S3VE3G_EUR
+#if !defined(CONFIG_MACH_S3VE3G_EUR) && !defined(CONFIG_MACH_MS01_EUR_3G) && !defined(CONFIG_MACH_MS01_EUR_LTE)
 	vpcm_dha_param_send_cmd.mem_handle = 0;
 	vpcm_dha_param_send_cmd.mem_address = 0;
 	vpcm_dha_param_send_cmd.mem_size = 40;
@@ -5261,7 +5261,7 @@ fail:
 int voice_sec_set_dha_data(uint32_t session_id, short mode,
 			short select, short *parameters)
 {
-#if defined(CONFIG_MACH_S3VE3G_EUR) || defined(CONFIG_MACH_MS01_EUR_3G)
+#if defined(CONFIG_MACH_S3VE3G_EUR) || defined(CONFIG_MACH_MS01_EUR_3G) || defined(CONFIG_MACH_MS01_EUR_LTE)
 	struct voice_data *v = NULL;
 	int ret = 0;
 	int i = 0;
@@ -5807,7 +5807,7 @@ static int32_t qdsp_cvp_callback(struct apr_client_data *data, void *priv)
 			case VSS_IVOCPROC_CMD_DEREGISTER_CALIBRATION_DATA:
 			case VSS_IVOCPROC_CMD_REGISTER_DEVICE_CONFIG:
 			case VSS_IVOCPROC_CMD_DEREGISTER_DEVICE_CONFIG:
-#if defined(CONFIG_MACH_S3VE3G_EUR) || defined(CONFIG_MACH_MS01_EUR_3G)
+#if defined(CONFIG_MACH_S3VE3G_EUR) || defined(CONFIG_MACH_MS01_EUR_3G) || defined(CONFIG_MACH_MS01_EUR_LTE)
 			case VSS_ICOMMON_CMD_SET_UI_PROPERTY:
 #endif
 			case VSS_ICOMMON_CMD_MAP_MEMORY:

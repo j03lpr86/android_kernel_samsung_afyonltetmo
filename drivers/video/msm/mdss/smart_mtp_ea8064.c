@@ -2041,7 +2041,7 @@ static void gamma_init_S_hd_revD(struct SMART_DIM *pSmart, char *str, int size)
 	else if (pSmart->brightness_level == 300)
 		bl_level = 300;
 	else if (pSmart->brightness_level == 282)
-		bl_level = 284;
+		bl_level = 294;
 	else if (pSmart->brightness_level == 265)
 		bl_level = 268;
 

@@ -319,7 +319,8 @@ static void msm_vfe32_reg_update(
 	msm_camera_io_w_mb(0xF, vfe_dev->vfe_base + 0x260);
 }
 
-static long msm_vfe32_reset_hardware(struct vfe_device *vfe_dev)
+static long msm_vfe32_reset_hardware(struct vfe_device *vfe_dev,
+	uint32_t blocking)
 {
 	init_completion(&vfe_dev->reset_complete);
 	msm_camera_io_w_mb(0x3FF, vfe_dev->vfe_base + 0x4);
@@ -441,11 +442,11 @@ static void msm_vfe32_clear_framedrop(struct vfe_device *vfe_dev,
 }
 
 static void msm_vfe32_cfg_io_format(struct vfe_device *vfe_dev,
-	struct msm_vfe_axi_stream *stream_info)
+	enum msm_vfe_axi_stream_src stream_src, uint32_t io_format)
 {
-	int bpp, bpp_reg = 0;
+	int bpp, bpp_reg = 0, pack_fmt = 0, pack_reg = 0;
 	uint32_t io_format_reg;
-	bpp = msm_isp_get_bit_per_pixel(stream_info->output_format);
+	bpp = msm_isp_get_bit_per_pixel(io_format);
 
 	switch (bpp) {
 	case 8:
@@ -458,18 +459,46 @@ static void msm_vfe32_cfg_io_format(struct vfe_device *vfe_dev,
 		bpp_reg = 1 << 1;
 		break;
 	}
+
+	if (stream_src == IDEAL_RAW) {
+		pack_fmt = msm_isp_get_pack_format(io_format);
+		switch (pack_fmt) {
+		case QCOM:
+			pack_reg = 0x0;
+			break;
+		case MIPI:
+			pack_reg = 0x1;
+			break;
+		case DPCM6:
+			pack_reg = 0x2;
+			break;
+		case DPCM8:
+			pack_reg = 0x3;
+			break;
+		case PLAIN8:
+			pack_reg = 0x4;
+			break;
+		case PLAIN16:
+			pack_reg = 0x5;
+			break;
+                default:
+                        pr_err("%s: invalid pack fmt!\n", __func__);
+                        return;
+		}
+	}
+
 	io_format_reg = msm_camera_io_r(vfe_dev->vfe_base + 0x6F8);
-	switch (stream_info->stream_src) {
+	switch (stream_src) {
+	case PIX_ENCODER:
+	case PIX_VIEWFINDER:
 	case CAMIF_RAW:
 		io_format_reg &= 0xFFFFCFFF;
 		io_format_reg |= bpp_reg << 12;
 		break;
 	case IDEAL_RAW:
 		io_format_reg &= 0xFFFFFFC8;
-		io_format_reg |= bpp_reg << 4;
+		io_format_reg |= bpp_reg << 4 | pack_reg;
 		break;
-	case PIX_ENCODER:
-	case PIX_VIEWFINDER:
 	case RDI_INTF_0:
 	case RDI_INTF_1:
 	case RDI_INTF_2:
@@ -705,7 +734,7 @@ static void msm_vfe32_update_ping_pong_addr(struct vfe_device *vfe_dev,
 		VFE32_PING_PONG_BASE(wm_idx, pingpong_status));
 }
 
-static long msm_vfe32_axi_halt(struct vfe_device *vfe_dev)
+static long msm_vfe32_axi_halt(struct vfe_device *vfe_dev, uint32_t blocking)
 {
 	uint32_t halt_mask;
 	halt_mask = msm_camera_io_r(vfe_dev->vfe_base + 0x20);

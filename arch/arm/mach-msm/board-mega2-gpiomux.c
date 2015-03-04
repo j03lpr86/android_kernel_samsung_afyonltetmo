@@ -553,12 +553,6 @@ static struct gpiomux_setting cam_settings[] = {
 		.pull = GPIOMUX_PULL_NONE,
 		.dir = GPIOMUX_OUT_LOW,
 	},
-	{
-		.func = GPIOMUX_FUNC_GPIO, /*active 0*/ /* 6 */
-		.drv = GPIOMUX_DRV_2MA,
-		.pull = GPIOMUX_PULL_DOWN,
-		.dir = GPIOMUX_OUT_LOW,
-	},
 };
 
 
@@ -623,29 +617,29 @@ static struct msm_gpiomux_config msm_sensor_configs[] __initdata = {
 	{
 		.gpio = 37, /* CAM1_RST_N */
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[6],
-			[GPIOMUX_SUSPENDED] = &cam_settings[6],
+			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+			[GPIOMUX_SUSPENDED] = &cam_settings[4],
 		},
 	},
 	{
 		.gpio = 28, /* CAM2_RST_N */
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[6],
-			[GPIOMUX_SUSPENDED] = &cam_settings[6],
+			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+			[GPIOMUX_SUSPENDED] = &cam_settings[4],
 		},
 	},
 	{
 		.gpio = 112, /* CAM_ANALOG_EN */
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[6],
-			[GPIOMUX_SUSPENDED] = &cam_settings[6],
+			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+			[GPIOMUX_SUSPENDED] = &cam_settings[4],
 		},
 	},
 	{
 		.gpio = 116, /* CAM_VT_STBY */
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[6],
-			[GPIOMUX_SUSPENDED] = &cam_settings[6],
+			[GPIOMUX_ACTIVE]    = &cam_settings[3],
+			[GPIOMUX_SUSPENDED] = &cam_settings[4],
 		},
 	},
 };
@@ -664,27 +658,20 @@ static struct msm_gpiomux_config msm_sensor_configs_skuf_plus[] __initdata = {
 static struct gpiomux_setting earjack_gpio_active_cfg = {
 	.func = GPIOMUX_FUNC_GPIO, /*active 1*/ /* 0 */
 	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_NONE,
+	.pull = GPIOMUX_PULL_DOWN,
 	.dir = GPIOMUX_IN,
 };
 
 static struct gpiomux_setting earjack_gpio_suspend_cfg = {
 	.func = GPIOMUX_FUNC_GPIO, /*suspend*/ /* 1 */
 	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_NONE,
+	.pull = GPIOMUX_PULL_DOWN,
 	.dir = GPIOMUX_IN,
 };
 
 static struct msm_gpiomux_config msm_earjack_gpio_configs[] __initdata = {
 	{
 		.gpio = 35, /* EAR_SWITCH */
-		.settings = {
-			[GPIOMUX_ACTIVE]    = &earjack_gpio_active_cfg,
-			[GPIOMUX_SUSPENDED] = &earjack_gpio_suspend_cfg,
-		},
-	},
-		{
-		.gpio = 69, /* EAR_DET */
 		.settings = {
 			[GPIOMUX_ACTIVE]    = &earjack_gpio_active_cfg,
 			[GPIOMUX_SUSPENDED] = &earjack_gpio_suspend_cfg,
@@ -759,6 +746,26 @@ static struct msm_gpiomux_config usb_otg_sw_configs[] __initdata = {
 			[GPIOMUX_SUSPENDED] = &usb_otg_sw_cfg,
 		},
 	},
+};
+
+/* Battery charging and BMS GPIO configuration */
+static struct gpiomux_setting ta_nchg_cfg[] = {
+	{
+		.func = GPIOMUX_FUNC_GPIO,
+		.drv = GPIOMUX_DRV_2MA,
+		.pull = GPIOMUX_PULL_NONE,
+		.dir = GPIOMUX_IN,
+	},
+};
+
+static struct msm_gpiomux_config msm_ta_nchg_configs[] = {
+  {
+     .gpio = 54,               /* TA_NCHG */
+     .settings = {
+      [GPIOMUX_ACTIVE] = &ta_nchg_cfg[0],
+      [GPIOMUX_SUSPENDED] = &ta_nchg_cfg[0],
+    },
+  },
 };
 
 static struct msm_gpiomux_config tkey_led_gpio_configs[] __initdata = {
@@ -850,31 +857,26 @@ extern int system_rev;
 
 /*NC GPIOs configuration*/
 static struct msm_gpiomux_config gpio_nc_configs[] __initdata = {
-	NC_GPIO_CONFIG(14),
 	NC_GPIO_CONFIG(15),
 	NC_GPIO_CONFIG(49),
 	NC_GPIO_CONFIG(50),
 	NC_GPIO_CONFIG(51),
 	NC_GPIO_CONFIG(52),
-	NC_GPIO_CONFIG(62),
 	NC_GPIO_CONFIG(72),
 	NC_GPIO_CONFIG(73),
-	NC_GPIO_CONFIG(75),
 	NC_GPIO_CONFIG(88),
 	NC_GPIO_CONFIG(89),
 	NC_GPIO_CONFIG(90),
-	NC_GPIO_CONFIG(93),
-	NC_GPIO_CONFIG(94),
 	NC_GPIO_CONFIG(97),
 	NC_GPIO_CONFIG(98),
 	NC_GPIO_CONFIG(99),
 	NC_GPIO_CONFIG(100),
-	NC_GPIO_CONFIG(103),
-	NC_GPIO_CONFIG(104),
 	NC_GPIO_CONFIG(107),
 	NC_GPIO_CONFIG(113),
-	NC_GPIO_CONFIG(114),
 	NC_GPIO_CONFIG(115),
+	NC_GPIO_CONFIG(116),
+	NC_GPIO_CONFIG(117),
+	NC_GPIO_CONFIG(118),
 };
 
 void __init msm8226_init_gpiomux(void)
@@ -886,6 +888,10 @@ void __init msm8226_init_gpiomux(void)
 		pr_err("%s failed %d\n", __func__, rc);
 		return;
 	}
+
+/* Battery charging and BMS GPIO */
+	msm_gpiomux_install(msm_ta_nchg_configs, ARRAY_SIZE(msm_ta_nchg_configs));
+
 
 	msm_gpiomux_install(msm_keypad_configs,
 			ARRAY_SIZE(msm_keypad_configs));

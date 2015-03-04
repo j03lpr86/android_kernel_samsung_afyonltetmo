@@ -1056,6 +1056,7 @@ static int bmg160_probe(struct i2c_client *client,
 	}
 
 	bmg160_parse_dt(data, &client->dev);
+	bmg160_setup_pin(data);
 
 	i2c_set_clientdata(client, data);
 	data->client = client;

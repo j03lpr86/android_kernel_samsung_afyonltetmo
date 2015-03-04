@@ -27,7 +27,7 @@
 #include <mach/sec_debug.h>
 #endif
 
-#if defined(CONFIG_SEC_PATEK_PROJECT) || defined(CONFIG_SEC_S_PROJECT)
+#ifdef CONFIG_SEC_PATEK_PROJECT
 	static int check_pkey_press;
 #endif
 
@@ -385,10 +385,10 @@ qpnp_pon_input_dispatch(struct qpnp_pon *pon, u32 pon_type)
 					(pon_rt_sts & pon_rt_bit));
 	input_sync(pon->pon_input);
 
-#ifdef CONFIG_SEC_PATEK_PROJECT
-	if((cfg->key_code == KEY_END_CALL) && (pon_rt_sts & pon_rt_bit)){
+#ifdef CONFIG_SEC_PATEK_PROJECT // 107 = key_end / end call key , 116 = key_power / hold key
+	if((cfg->key_code == 107) && (pon_rt_sts & pon_rt_bit)){
 		pon->powerkey_state = 1;
-	}else if((cfg->key_code == KEY_END_CALL) && !(pon_rt_sts & pon_rt_bit)){
+	}else if((cfg->key_code == 107) && !(pon_rt_sts & pon_rt_bit)){
 		pon->powerkey_state = 0;
 	}
 #else
@@ -415,13 +415,13 @@ qpnp_pon_input_dispatch(struct qpnp_pon *pon, u32 pon_type)
 	sec_debug_check_crash_key(cfg->key_code, pon->powerkey_state);
 #endif
 #endif
-#if defined(CONFIG_SEC_PATEK_PROJECT) || defined(CONFIG_SEC_S_PROJECT)
+#ifdef CONFIG_SEC_PATEK_PROJECT
 	check_pkey_press=pon->powerkey_state;
 #endif
 	return 0;
 }
 
-#if defined(CONFIG_SEC_PATEK_PROJECT) || defined(CONFIG_SEC_S_PROJECT)
+#ifdef CONFIG_SEC_PATEK_PROJECT
 int check_short_pkey(void)
 {
 	return check_pkey_press;
@@ -667,7 +667,7 @@ qpnp_config_reset(struct qpnp_pon *pon, struct qpnp_pon_config *cfg)
 	/* For Millet VZW and Mattise VZW models always do warm reset */
 #if defined(CONFIG_MACH_MATISSELTE_VZW) || defined(CONFIG_MACH_MILLETLTE_VZW)
 		cfg->s2_type = 1;
-#elif defined(CONFIG_SEC_MILLET_PROJECT) || defined(CONFIG_MACH_MEGA23GEUR_OPEN)
+#elif defined(CONFIG_SEC_MILLET_PROJECT)
 		cfg->s2_type = 8;  //dVDD hard reset
 #elif defined(CONFIG_MACH_MATISSE3G_CHN_OPEN) || defined(CONFIG_MACH_MILLET3G_CHN_OPEN)
 		cfg->s2_type = 8;  //dVDD reset
@@ -1094,7 +1094,7 @@ static int __devinit qpnp_pon_config_init(struct qpnp_pon *pon)
 		rc = of_property_read_u32(pp, "linux,code", &cfg->key_code);
 
 #ifdef CONFIG_SEC_PATEK_PROJECT
-		cfg->key_code = KEY_END_CALL;
+		cfg->key_code = 107;
 		dev_err(&pon->spmi->dev, "patek power key code changed to %d (116)\n", cfg->key_code);
 #else
 		if (rc && rc != -EINVAL) {

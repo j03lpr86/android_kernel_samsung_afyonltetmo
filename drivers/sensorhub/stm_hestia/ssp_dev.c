@@ -26,7 +26,7 @@ static void ssp_late_resume(struct early_suspend *handler);
 #endif
 
 #ifdef CONFIG_SEC_HESTIA_PROJECT
-#define NORMAL_SENSOR_STATE	0x23ff9f
+#define NORMAL_SENSOR_STATE	0x3FF9F
 #else
 #define NORMAL_SENSOR_STATE	0x3FEFF
 #endif
@@ -39,11 +39,11 @@ void ssp_enable(struct ssp_data *data, bool enable)
 	if (enable && data->bSspShutdown) {
 		data->bSspShutdown = false;
 		enable_irq(data->iIrq);
-		//enable_irq_wake(data->iIrq);
+		enable_irq_wake(data->iIrq);
 	} else if (!enable && !data->bSspShutdown) {
 		data->bSspShutdown = true;
 		disable_irq(data->iIrq);
-		//disable_irq_wake(data->iIrq);
+		disable_irq_wake(data->iIrq);
 	} else
 		pr_err("[SSP] %s, enable error\n", __func__);
 }

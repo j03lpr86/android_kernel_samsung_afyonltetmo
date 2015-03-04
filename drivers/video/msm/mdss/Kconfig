@@ -234,10 +234,6 @@ config CABC_TUNING
 	bool "CABC panel tuning"
 	default n
 
-config CABC_TUNING_HX8394C
-	bool "CABC panel(HX8394C) tuning"
-	default n
-
 config FB_MSM_MIPI_TFT_VIDEO_FULL_HD_PT_PANEL
 	bool "Support TFT VIDEO FULL HD Panel"
 	select FB_MSM_MIPI_DSI

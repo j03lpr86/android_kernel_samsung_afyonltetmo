@@ -381,7 +381,7 @@ static u8 veq_coefficients_wb[][74] = {
 	0xCE, 0x00, 0xB5, 0xB2
 	},
 };
-#elif defined(CONFIG_MACH_KACTIVELTE_ATT) || defined(CONFIG_MACH_KACTIVELTE_CAN)
+#elif defined(CONFIG_MACH_KACTIVELTE_ATT)
 /* index 0 means max. volume level */
 static u32 veq_max_gains_nb[] = {
 	0x90180004,
