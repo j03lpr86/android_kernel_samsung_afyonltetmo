@@ -69,7 +69,9 @@
 #include <linux/regulator/consumer.h>
 #include <linux/clk.h>
 #endif
-
+#if defined (CONFIG_MACH_AFYONLTE_TMO) || defined(CONFIG_MACH_ATLANTICLTE_ATT) || defined(CONFIG_MACH_ATLANTIC3GEUR_OPEN) || defined(CONFIG_MACH_AFYONLTE_MTR)
+#include <asm/hardware/gic.h>
+#endif
 #include <linux/vmalloc.h>
 
 #ifdef CONFIG_SEC_DEBUG_VERBOSE_SUMMARY_HTML
@@ -1733,6 +1735,9 @@ void sec_debug_check_crash_key(unsigned int code, int value)
 			emerg_pet_watchdog();
 			dump_all_task_info();
 			dump_cpu_stat();
+#if defined (CONFIG_MACH_AFYONLTE_TMO) || defined(CONFIG_MACH_ATLANTICLTE_ATT) || defined(CONFIG_MACH_ATLANTIC3GEUR_OPEN) || defined(CONFIG_MACH_AFYONLTE_MTR)
+			gic_dump_register_set();
+#endif
 			panic("Crash Key");
 		} else {
 			state = NONE;

@@ -239,6 +239,10 @@ static int micbias_en_msm_gpio = 0;
 #if defined(CONFIG_LDO_SUBMIC_BIAS)
 static int submic_bias_gpio = 0;
 #endif
+#if defined(CONFIG_LDO_EARMIC_BIAS)
+static int earmic_bias_gpio = 0;
+#endif
+
 static int spkamp_en_gpio = 0;
 static int main_mic_delay = 0;
 #ifdef CONFIG_SEC_JACTIVE_PROJECT
@@ -809,6 +813,21 @@ static int msm_submic_bias_event(struct snd_soc_dapm_widget *w,
 }
 #endif
 
+#if defined(CONFIG_LDO_EARMIC_BIAS)
+static int msm_earmic_bias_event(struct snd_soc_dapm_widget *w,
+	struct snd_kcontrol *k, int event)
+{
+	pr_info("%s : Event %d,  SND_SOC_DAPM:%d\n",
+		__func__, (event), SND_SOC_DAPM_EVENT_ON(event));
+
+		gpio_direction_output(earmic_bias_gpio,
+				SND_SOC_DAPM_EVENT_ON(event));
+
+	return 0;
+}
+#endif
+
+
 #ifdef CONFIG_SEC_K_PROJECT
 static const struct snd_soc_dapm_widget msm8974_dapm_widgets[] = {
 
@@ -907,7 +926,11 @@ static const struct snd_soc_dapm_widget msm8974_dapm_widgets[] = {
 #else
 	SND_SOC_DAPM_MIC("Main Mic", msm_mainmic_bias_event),
 #endif
+#if defined(CONFIG_LDO_EARMIC_BIAS)
+	SND_SOC_DAPM_MIC("Headset Mic", msm_earmic_bias_event),
+#else
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
+#endif	
 #if defined(CONFIG_LDO_SUBMIC_BIAS)
 	SND_SOC_DAPM_MIC("Sub Mic", msm_submic_bias_event),
 #else
@@ -3330,6 +3353,27 @@ static int msm8974_prepare_submic(void)
 	return 0;
 }
 #endif
+
+#if defined(CONFIG_LDO_EARMIC_BIAS)
+static int msm8974_prepare_earmic(void)
+{
+	int ret;
+	if (earmic_bias_gpio) {
+		pr_debug("%s : earmic bias gpio request %d", __func__,
+			earmic_bias_gpio);
+		ret = gpio_request(earmic_bias_gpio, "TAIKO_EARMIC_BIAS");
+		if (ret) {
+			pr_debug("%s: Failed to request taiko earmic bias gpio %d error %d\n",
+				__func__, earmic_bias_gpio, ret);
+			return ret;
+		}
+		gpio_direction_output(earmic_bias_gpio, 0);
+	}
+
+	return 0;
+}
+#endif
+
 static int msm8974_prepare_spkamp(void)
 {
 	int ret;
@@ -3578,6 +3622,22 @@ static __devinit int msm8974_asoc_machine_probe(struct platform_device *pdev)
 			submic_bias_gpio = 0;
 		}
 #endif
+
+#if defined(CONFIG_LDO_EARMIC_BIAS)
+	/* the ldo of ear mic bias */
+	earmic_bias_gpio = of_get_named_gpio(pdev->dev.of_node,
+				"qcom,earmic-bias-gpio", 0);
+		pr_info("%s :ear mic bias = %d\n", __func__, earmic_bias_gpio);
+
+		ret = msm8974_prepare_earmic();
+		if (ret) {
+			dev_err(&pdev->dev, "msm8974_prepare_earmic failed (%d)\n",
+				ret);
+			gpio_free(earmic_bias_gpio);
+			earmic_bias_gpio = 0;
+		}
+#endif
+
 
 #if defined(CONFIG_MACH_KLTE_KOR) || defined(CONFIG_MACH_KLTE_JPN)
 	/* enable FSA8039 for jack detection */

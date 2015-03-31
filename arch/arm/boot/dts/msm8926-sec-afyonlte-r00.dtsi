@@ -178,6 +178,8 @@
 			interrupt-parent = <&msmgpio>;
 			interrupts = <64 0>;
 			bma255-i2c,i2c-pull-up = <1>;
+			bma255-i2c,scl = <&msmgpio 7 0>;
+			bma255-i2c,sda = <&msmgpio 6 0>;
 			bma255-i2c,vdd-supply = <&pm8226_l19>;
 			bma255-i2c,vdd-io-supply = <&pm8226_lvs1>;
 			bma255-i2c,acc_int1-gpio = <&msmgpio 64 0x1>;

@@ -25,6 +25,7 @@
 
 #include "cyttsp4_regs.h"
 
+#include <linux/cpufreq.h>
 static void cyttsp4_lift_all(struct cyttsp4_mt_data *md)
 {
 	if (!md->si)

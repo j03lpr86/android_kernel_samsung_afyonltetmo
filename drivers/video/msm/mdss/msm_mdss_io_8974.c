@@ -376,7 +376,11 @@ static void mdss_dsi_clk_unprepare(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 
 static int mdss_dsi_clk_set_rate(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 {
+#if defined(CONFIG_SEC_ATLANTIC_PROJECT)
+	u32 esc_clk_rate = 12000000;
+#else
 	u32 esc_clk_rate = 19200000;
+#endif
 	int rc = 0;
 
 	if (!ctrl_pdata) {
@@ -481,38 +485,62 @@ static void mdss_dsi_clk_disable(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 static int mdss_dsi_enable_clks(struct mdss_dsi_ctrl_pdata *ctrl)
 {
 	int rc = 0;
+#if defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQXGA_S6TNMR7_PT_PANEL)
+	rc = mdss_dsi_clk_set_rate(ctrl);
+	if (rc) {
+		pr_err("%s: failed to set clk rates. rc=%d\n",
+			__func__, rc);
+		goto error;
+	}
 
-			rc = mdss_dsi_enable_bus_clocks(ctrl);
-			if (rc) {
-				pr_err("%s: failed to enable bus clks. rc=%d\n",
-					__func__, rc);
-				goto error;
-			}
+	rc = mdss_dsi_clk_prepare(ctrl);
+	if (rc) {
+		pr_err("%s: failed to prepare clks. rc=%d\n",
+			__func__, rc);
+		goto error;
+	}
 
-			rc = mdss_dsi_clk_set_rate(ctrl);
-			if (rc) {
-				pr_err("%s: failed to set clk rates. rc=%d\n",
-					__func__, rc);
-				mdss_dsi_disable_bus_clocks(ctrl);
-				goto error;
-			}
+	rc = mdss_dsi_clk_enable(ctrl);
+	if (rc) {
+		pr_err("%s: failed to enable clks. rc=%d\n",
+			__func__, rc);
+		mdss_dsi_clk_unprepare(ctrl);
+		goto error;
+	}
+#else
+	rc = mdss_dsi_enable_bus_clocks(ctrl);
+	if (rc) {
+		pr_err("%s: failed to enable bus clks. rc=%d\n",
+			__func__, rc);
+		goto error;
+	}
 
-			rc = mdss_dsi_clk_prepare(ctrl);
-			if (rc) {
-				pr_err("%s: failed to prepare clks. rc=%d\n",
-					__func__, rc);
-				mdss_dsi_disable_bus_clocks(ctrl);
-				goto error;
-			}
+	rc = mdss_dsi_clk_set_rate(ctrl);
+	if (rc) {
+		pr_err("%s: failed to set clk rates. rc=%d\n",
+			__func__, rc);
+		mdss_dsi_disable_bus_clocks(ctrl);
+		goto error;
+	}
 
-			rc = mdss_dsi_clk_enable(ctrl);
-			if (rc) {
-				pr_err("%s: failed to enable clks. rc=%d\n",
-					__func__, rc);
-				mdss_dsi_clk_unprepare(ctrl);
-				mdss_dsi_disable_bus_clocks(ctrl);
-				goto error;
-			}
+	rc = mdss_dsi_clk_prepare(ctrl);
+	if (rc) {
+		pr_err("%s: failed to prepare clks. rc=%d\n",
+			__func__, rc);
+		mdss_dsi_disable_bus_clocks(ctrl);
+		goto error;
+	}
+
+	rc = mdss_dsi_clk_enable(ctrl);
+	if (rc) {
+		pr_err("%s: failed to enable clks. rc=%d\n",
+			__func__, rc);
+		mdss_dsi_clk_unprepare(ctrl);
+		mdss_dsi_disable_bus_clocks(ctrl);
+		goto error;
+	}
+
+#endif
 
 error:
 	return rc;
@@ -671,7 +699,9 @@ int mdss_dsi_clk_ctrl(struct mdss_dsi_ctrl_pdata *ctrl, int enable)
 					if(left_ctrl->clk_cnt_by_dsi1 == 0 && left_ctrl->clk_cnt == 0 ) {
 						mdss_dsi_clk_disable(left_ctrl);
 						mdss_dsi_clk_unprepare(left_ctrl);
+#if !defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQXGA_S6TNMR7_PT_PANEL)
 						mdss_dsi_disable_bus_clocks(left_ctrl);
+#endif
 					}
 				}
 
@@ -680,7 +710,9 @@ int mdss_dsi_clk_ctrl(struct mdss_dsi_ctrl_pdata *ctrl, int enable)
 					if (ctrl->clk_cnt == 0) {
 						mdss_dsi_clk_disable(ctrl);
 						mdss_dsi_clk_unprepare(ctrl);
+#if !defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQXGA_S6TNMR7_PT_PANEL)
 						mdss_dsi_disable_bus_clocks(ctrl);
+#endif
 					}
 				}
 		} 
@@ -691,13 +723,17 @@ int mdss_dsi_clk_ctrl(struct mdss_dsi_ctrl_pdata *ctrl, int enable)
 					if (ctrl->clk_cnt == 0 && left_ctrl->clk_cnt_by_dsi1 == 0) {
 						mdss_dsi_clk_disable(ctrl);
 						mdss_dsi_clk_unprepare(ctrl);
+#if !defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQXGA_S6TNMR7_PT_PANEL)
 						mdss_dsi_disable_bus_clocks(ctrl);
+#endif
 					}
 				} else {
 					if (ctrl->clk_cnt == 0) {
 						mdss_dsi_clk_disable(ctrl);
 						mdss_dsi_clk_unprepare(ctrl);
+#if !defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQXGA_S6TNMR7_PT_PANEL)
 						mdss_dsi_disable_bus_clocks(ctrl);
+#endif
 					}
 				}
 			}

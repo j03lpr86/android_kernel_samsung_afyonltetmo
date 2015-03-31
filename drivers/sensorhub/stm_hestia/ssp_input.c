@@ -485,6 +485,17 @@ void report_temp_humidity_data(struct ssp_data *data,
 		wake_lock_timeout(&data->ssp_wake_lock, 2 * HZ);
 }
 #endif
+
+#ifdef CONFIG_SENSORS_SSP_UV
+void report_uv_data(struct ssp_data *data,
+	struct sensor_value *uv_data)
+{
+	data->buf[UV_SENSOR].uv = uv_data->uv;
+	input_report_rel(data->uv_input_dev, REL_MISC,
+		data->buf[UV_SENSOR].uv + 1);
+	input_sync(data->uv_input_dev);
+}
+#endif
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 void report_bulk_comp_data(struct ssp_data *data)
 {
@@ -529,7 +540,13 @@ int initialize_event_symlink(struct ssp_data *data)
 	if (iRet < 0)
 		goto iRet_temp_humi_sysfs_create_link;
 #endif
-
+#ifdef CONFIG_SENSORS_SSP_UV
+	iRet = sysfs_create_link(&data->sen_dev->kobj,
+		&data->uv_input_dev->dev.kobj,
+		data->uv_input_dev->name);
+	if (iRet < 0)
+		goto iRet_uv_sysfs_create_link;
+#endif
 	iRet = sysfs_create_link(&data->sen_dev->kobj,
 		&data->mag_input_dev->dev.kobj,
 		data->mag_input_dev->name);
@@ -588,6 +605,12 @@ iRet_uncal_mag_sysfs_create_link:
 		&data->mag_input_dev->dev.kobj,
 		data->mag_input_dev->name);
 iRet_mag_sysfs_create_link:
+#ifdef CONFIG_SENSORS_SSP_UV
+	sysfs_delete_link(&data->sen_dev->kobj,
+		&data->uv_input_dev->dev.kobj,
+		data->uv_input_dev->name);
+iRet_uv_sysfs_create_link:
+#endif
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 	sysfs_delete_link(&data->sen_dev->kobj,
 		&data->temp_humi_input_dev->dev.kobj,
@@ -632,6 +655,11 @@ void remove_event_symlink(struct ssp_data *data)
 	sysfs_delete_link(&data->sen_dev->kobj,
 		&data->temp_humi_input_dev->dev.kobj,
 		data->temp_humi_input_dev->name);
+#endif
+#ifdef CONFIG_SENSORS_SSP_UV
+	sysfs_delete_link(&data->sen_dev->kobj,
+		&data->uv_input_dev->dev.kobj,
+		data->uv_input_dev->name);
 #endif
 	sysfs_delete_link(&data->sen_dev->kobj,
 		&data->mag_input_dev->dev.kobj,
@@ -744,6 +772,9 @@ int initialize_input_dev(struct ssp_data *data)
 	struct input_dev *light_input_dev, *prox_input_dev,
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 		*temp_humi_input_dev,
+#endif
+#ifdef CONFIG_SENSORS_SSP_UV
+		*uv_input_dev,
 #endif
 #if defined(CONFIG_SENSORS_SSP_TMG399X) || defined(CONFIG_SENSORS_SSP_MAX88921) || \
 	defined(CONFIG_SENSORS_SSP_MAX88920)
@@ -951,6 +982,12 @@ int initialize_input_dev(struct ssp_data *data)
 		goto iRet_temp_humidity_input_free_device;
 #endif
 
+#ifdef CONFIG_SENSORS_SSP_UV
+	uv_input_dev = input_allocate_device();
+	if (uv_input_dev == NULL)
+		goto iRet_uv_input_free_device;
+#endif
+
 	mag_input_dev = input_allocate_device();
 	if (mag_input_dev == NULL)
 		goto iRet_mag_input_free_device;
@@ -984,6 +1021,9 @@ int initialize_input_dev(struct ssp_data *data)
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 	input_set_drvdata(temp_humi_input_dev, data);
 #endif
+#ifdef CONFIG_SENSORS_SSP_UV
+	input_set_drvdata(uv_input_dev, data);
+#endif
 	input_set_drvdata(mag_input_dev, data);
 	input_set_drvdata(uncal_mag_input_dev, data);
 	input_set_drvdata(sig_motion_input_dev, data);
@@ -999,6 +1039,9 @@ int initialize_input_dev(struct ssp_data *data)
 	prox_input_dev->name = "proximity_sensor";
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 	temp_humi_input_dev->name = "temp_humidity_sensor";
+#endif
+#ifdef CONFIG_SENSORS_SSP_UV
+	uv_input_dev->name = "uv_sensor";
 #endif
 	mag_input_dev->name = "geomagnetic_sensor";
 	uncal_mag_input_dev->name = "uncal_geomagnetic_sensor";
@@ -1067,6 +1110,9 @@ int initialize_input_dev(struct ssp_data *data)
 	input_set_capability(temp_humi_input_dev, EV_REL, REL_DIAL);
 	input_set_capability(temp_humi_input_dev, EV_REL, REL_WHEEL);
 #endif
+#ifdef CONFIG_SENSORS_SSP_UV
+	input_set_capability(uv_input_dev, EV_REL, REL_MISC);
+#endif
 #ifdef SAVE_MAG_LOG
 	input_set_capability(mag_input_dev, EV_REL, REL_X);
 	input_set_capability(mag_input_dev, EV_REL, REL_Y);
@@ -1110,6 +1156,25 @@ int initialize_input_dev(struct ssp_data *data)
 	iRet = input_register_device(gesture_input_dev);
 	if (iRet < 0)
 		goto iRet_gesture_input_unreg_device;
+#endif
+
+#ifdef CONFIG_SENSORS_SSP_UV
+	iRet = input_register_device(uv_input_dev);
+	if (iRet < 0) {
+		input_free_device(uv_input_dev);
+		input_free_device(light_input_dev);
+		input_free_device(prox_input_dev);
+#ifdef CONFIG_SENSORS_SSP_SHTC1
+		input_free_device(temp_humi_input_dev);
+#endif
+		input_free_device(mag_input_dev);
+		input_free_device(uncal_mag_input_dev);
+		input_free_device(sig_motion_input_dev);
+		input_free_device(uncalib_gyro_input_dev);
+		input_free_device(step_cnt_input_dev);
+		input_free_device(meta_input_dev);
+		goto iRet_uv_input_unreg_device;
+	}
 #endif
 
 	iRet = input_register_device(light_input_dev);
@@ -1217,6 +1282,9 @@ int initialize_input_dev(struct ssp_data *data)
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 	data->temp_humi_input_dev = temp_humi_input_dev;
 #endif
+#ifdef CONFIG_SENSORS_SSP_UV
+	data->uv_input_dev = uv_input_dev;
+#endif
 	data->mag_input_dev = mag_input_dev;
 	data->uncal_mag_input_dev = uncal_mag_input_dev;
 	data->sig_motion_input_dev = sig_motion_input_dev;
@@ -1244,6 +1312,10 @@ iRet_tmep_humi_input_unreg_device:
 iRet_proximity_input_unreg_device:
 	input_unregister_device(light_input_dev);
 iRet_light_input_unreg_device:
+#ifdef CONFIG_SENSORS_SSP_UV
+	input_unregister_device(uv_input_dev);
+iRet_uv_input_unreg_device:
+#endif
 #if defined(CONFIG_SENSORS_SSP_TMG399X) || defined(CONFIG_SENSORS_SSP_MAX88921) || \
 	defined(CONFIG_SENSORS_SSP_MAX88920)
 	input_unregister_device(gesture_input_dev);
@@ -1265,6 +1337,10 @@ iRet_mag_input_free_device:
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 	input_free_device(temp_humi_input_dev);
 iRet_temp_humidity_input_free_device:
+#endif
+#ifdef CONFIG_SENSORS_SSP_UV
+	input_free_device(uv_input_dev);
+iRet_uv_input_free_device:
 #endif
 	input_free_device(prox_input_dev);
 iRet_proximity_input_free_device:
@@ -1338,6 +1414,9 @@ void remove_input_dev(struct ssp_data *data)
 	input_unregister_device(data->prox_input_dev);
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 	input_unregister_device(data->temp_humi_input_dev);
+#endif
+#ifdef CONFIG_SENSORS_SSP_UV
+	input_unregister_device(data->uv_input_dev);
 #endif
 	input_unregister_device(data->mag_input_dev);
 	input_unregister_device(data->uncal_mag_input_dev);

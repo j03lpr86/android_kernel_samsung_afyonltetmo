@@ -111,6 +111,7 @@ void sr352_regs_table_exit(void);
 #endif
 
 static struct yuv_ctrl sr352_ctrl;
+extern uint16_t rear_vendor_id;
 
 static int32_t cur_scene_mode_chg = 0;
 extern unsigned int system_rev;
@@ -172,6 +173,9 @@ int sr352_sensor_match_id(struct msm_camera_i2c_client *sensor_i2c_client,
         slave_info->sensor_id_reg_addr,
         &chipid,
         sensor_i2c_client->data_type);
+
+    if (chipid)
+        rear_vendor_id = chipid;
 
     if(chipid!=slave_info->sensor_id){
         pr_err("%s: chipid read=%x did not match with chipid=%x",

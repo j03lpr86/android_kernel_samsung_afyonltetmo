@@ -113,12 +113,19 @@ static int bma255_i2c_recovery(struct bma255_p *data)
 {
 	int ret, i;
 	struct gpiomux_setting old_config[2];
+#if defined(CONFIG_SEC_AFYON_PROJECT)
+	static struct gpiomux_setting recovery_config = {
+		.func = GPIOMUX_FUNC_3,
+		.drv = GPIOMUX_DRV_2MA,
+		.pull = GPIOMUX_PULL_NONE,
+	};
+#else
 	struct gpiomux_setting recovery_config = {
 		.func = GPIOMUX_FUNC_GPIO,
 		.drv = GPIOMUX_DRV_8MA,
 		.pull = GPIOMUX_PULL_NONE,
 	};
-
+#endif
 	if ((data->sda_gpio < 0) || (data->scl_gpio < 0)) {
 		pr_info("[SENSOR]: %s - no sda, scl gpio\n", __func__);
 		return -1;

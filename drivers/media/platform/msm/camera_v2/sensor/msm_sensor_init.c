@@ -28,8 +28,16 @@
 #define CDBG(fmt, args...) do { } while (0)
 #endif
 
-struct class *camera_class;
+#if defined(CONFIG_SR352) || defined(CONFIG_SR200PC20) || defined(CONFIG_S5K4ECGX)
+#define REAR_YUV_SENSOR
+#endif
 
+#if defined (CONFIG_SR130PC20) || defined(CONFIG_SR030PC50)
+#define FRONT_YUV_SENSOR
+#endif
+
+struct class *camera_class;
+uint16_t rear_vendor_id = 0;
 /* Static function declaration */
 static long msm_sensor_init_subdev_ioctl(struct v4l2_subdev *sd,
 	unsigned int cmd, void *arg);
@@ -109,7 +117,7 @@ static ssize_t back_camera_type_show(struct device *dev,
 	char type[] = "SONY_IMX219\n";
 #elif defined (CONFIG_SR200PC20)
 	char type[] = "SILICONFILE_SR200PC20\n";
-#elif defined (CONFIG_MACH_VICTORLTE_CTC)
+#elif defined (CONFIG_MACH_VICTORLTE_CTC) || defined(CONFIG_S5K4ECGX)
          char type[] = "SLSI_S5K4ECGX\n";
 #else
 	char type[] = "SLSI_S5K4H5YB\n";
@@ -177,7 +185,7 @@ static ssize_t back_camera_firmware_show(struct device *dev,
 	char cam_fw[] = "E08QSGG01OC E08QSGG01OC\n";/* Gumi, 8mega_pixel, Qualcomm_isp, Sony_sensor*/
 	return snprintf(buf, sizeof(cam_fw), "%s", cam_fw);
 #elif defined(CONFIG_SEC_ATLANTIC_PROJECT)
-	char cam_fw[] = "F08QUHE03SM F08QUHE03SM\n";/* Samsung Electro, 8mega_pixel, Qualcomm_isp, Sony_sensor IMX219*/
+	char cam_fw[] = "F08QUHF01SM F08QUHF01SM\n";/* Samsung Electro, 8mega_pixel, Qualcomm_isp, Sony_sensor IMX219*/
 	return snprintf(buf, sizeof(cam_fw), "%s", cam_fw);
 #elif defined(CONFIG_MACH_LT03EUR)
 	char cam_fw[] = "E08QSGG01OE E08QSGG01OE\n";
@@ -220,14 +228,11 @@ static ssize_t back_camera_firmware_store(struct device *dev,
 static ssize_t rear_camera_vendorid_show(struct device *dev,
 			struct device_attribute *attr, char *buf)
 {
-#if defined(CONFIG_MACH_AFYONLTE_TMO) || defined(CONFIG_MACH_AFYONLTE_CAN) \
-	|| defined (CONFIG_MACH_AFYONLTE_MTR)
-	char vendor_id[] = "0x0305\n";
-#elif defined(CONFIG_MACH_VICTORLTE_CTC)
-	char vendor_id[] = "0x0A03\n";
-#else
-	char vendor_id[] = "null\n";
-#endif
+	char vendor_id[16] = {0};
+	if (rear_vendor_id)
+	  sprintf(vendor_id, "0x0%x\n", rear_vendor_id);
+	else
+	  strncpy(vendor_id, "NULL\n", sizeof(vendor_id));
 	return  snprintf(buf, sizeof(vendor_id), "%s", vendor_id);
 }
 
@@ -256,11 +261,18 @@ static ssize_t front_camera_firmware_show(struct device *dev,
 static DEVICE_ATTR(rear_camtype, S_IRUGO, back_camera_type_show, NULL);
 static DEVICE_ATTR(rear_camfw, S_IRUGO|S_IWUSR|S_IWGRP,
     back_camera_firmware_show, back_camera_firmware_store);
+#if !defined(REAR_YUV_SENSOR)
+static DEVICE_ATTR(rear_camfw_full, S_IRUGO|S_IWUSR|S_IWGRP,
+    back_camera_firmware_show, back_camera_firmware_store);
+#endif
 static DEVICE_ATTR(rear_camantibanding, S_IRUGO|S_IWUSR|S_IWGRP,
     back_camera_antibanding_show, back_camera_antibanding_store);
 static DEVICE_ATTR(rear_vendorid, S_IRUGO, rear_camera_vendorid_show, NULL);
 static DEVICE_ATTR(front_camtype, S_IRUGO, front_camera_type_show, NULL);
 static DEVICE_ATTR(front_camfw, S_IRUGO, front_camera_firmware_show, NULL);
+#if !defined(FRONT_YUV_SENSOR)
+static DEVICE_ATTR(front_camfw_full, S_IRUGO, front_camera_firmware_show, NULL);
+#endif
 
 static int __init msm_sensor_init_module(void)
 {
@@ -318,6 +330,13 @@ static int __init msm_sensor_init_module(void)
 			dev_attr_rear_camfw.attr.name);
 		goto device_create_fail;
 	}
+#if !defined(REAR_YUV_SENSOR)
+	if (device_create_file(cam_dev_back, &dev_attr_rear_camfw_full) < 0) {
+		printk("Failed to create device file!(%s)!\n",
+			dev_attr_rear_camfw_full.attr.name);
+		goto device_create_fail;
+	}
+#endif
 	if (device_create_file(cam_dev_back, &dev_attr_rear_camantibanding) < 0) {
 		printk("Failed to create device file!(%s)!\n",
 			dev_attr_rear_camantibanding.attr.name);
@@ -346,7 +365,13 @@ static int __init msm_sensor_init_module(void)
 			dev_attr_front_camfw.attr.name);
 		goto device_create_fail;
 	}
-
+#if !defined(FRONT_YUV_SENSOR)
+	if (device_create_file(cam_dev_front, &dev_attr_front_camfw_full) < 0) {
+		printk("Failed to create device file!(%s)!\n",
+			dev_attr_front_camfw_full.attr.name);
+		goto device_create_fail;
+	}
+#endif
 	return 0;
 
 device_create_fail:

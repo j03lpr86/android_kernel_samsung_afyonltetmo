@@ -27,6 +27,12 @@
 
 #undef AN3029_COMPATIBLE
 
+#if defined(CONFIG_SEC_FACTORY)
+#if defined(CONFIG_FB_MSM8x26_MDSS_CHECK_LCD_CONNECTION)
+extern int get_lcd_attached(void);
+#endif
+#endif
+
 /* KTD2026 register map */
 #define KTD2026_REG_EN_RST		0x00
 #define KTD2026_REG_FLASH_PERIOD	0x01
@@ -871,6 +877,13 @@ static int __devinit ktd2026_probe(struct i2c_client *client,
 	/* initialize LED */
 	/* turn off all leds */
 	ktd2026_leds_on(LED_R, LED_EN_OFF, 0);
+
+#if defined(CONFIG_SEC_FACTORY)
+#if defined(CONFIG_FB_MSM8x26_MDSS_CHECK_LCD_CONNECTION)
+	if(get_lcd_attached() == 0)    // When LCD Not connected turning RED LED on
+		ktd2026_leds_on(LED_R, LED_EN_ON, 30);
+#endif
+#endif
 	ktd2026_leds_on(LED_G, LED_EN_OFF, 0);
 	ktd2026_leds_on(LED_B, LED_EN_OFF, 0);
 

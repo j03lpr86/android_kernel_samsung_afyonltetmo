@@ -33,7 +33,7 @@
  * needs to be rolled back once a solution is found to address the issue at hand
  */
 #if defined(CONFIG_SEC_MILLET_PROJECT) || defined(CONFIG_SEC_MATISSE_PROJECT) \
-		|| defined(CONFIG_SEC_AFYON_PROJECT)
+		|| defined(CONFIG_SEC_AFYON_PROJECT) || defined(CONFIG_SEC_ATLANTIC_PROJECT)
 #define WAIT_FENCE_FIRST_TIMEOUT (0.5 * MSEC_PER_SEC)
 #define WAIT_FENCE_FINAL_TIMEOUT (1 * MSEC_PER_SEC)
 #else

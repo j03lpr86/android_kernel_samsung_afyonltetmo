@@ -1706,7 +1706,8 @@ static void qpnp_led_set(struct led_classdev *led_cdev,
 
 	if (value > led->cdev.max_brightness)
 		value = led->cdev.max_brightness;
-#if defined(CONFIG_MACH_AFYONLTE_TMO) || defined(CONFIG_MACH_AFYONLTE_CAN) || defined(CONFIG_MACH_MS01_EUR_3G) || defined(CONFIG_MACH_MS01_EUR_LTE)
+#if defined(CONFIG_MACH_AFYONLTE_TMO) || defined(CONFIG_MACH_AFYONLTE_CAN) || defined(CONFIG_MACH_MS01_EUR_3G) || defined(CONFIG_MACH_MS01_EUR_LTE) \
+	|| defined(CONFIG_MACH_AFYONLTE_MTR)
 	pr_info("[LED]%s: %s value = %d\n", __func__, led_cdev->name, value);
 	if(strncmp(led_cdev->name, "button-backlight",  16))
 		led->cdev.brightness = value;

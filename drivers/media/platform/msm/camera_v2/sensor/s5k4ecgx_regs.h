@@ -2415,42 +2415,42 @@ static struct msm_camera_i2c_reg_conf s5k4ecgx_init_regs[] = {
 {0x0F12, 0x48D8,},
 {0x0F12, 0x7000,}, 	//TVAR_wbt_pOutdoorCcm
 {0x002A, 0x4800,},   // Horizon
-{0x0F12, 0x0208,},   //TVAR_wbt_pBaseCcms[0]
-{0x0F12, 0xFFB5,},   //TVAR_wbt_pBaseCcms[1]
-{0x0F12, 0xFFE8,},   //TVAR_wbt_pBaseCcms[2]
-{0x0F12, 0xFF20,},   //TVAR_wbt_pBaseCcms[3]
-{0x0F12, 0x01BF,},   //TVAR_wbt_pBaseCcms[4]
-{0x0F12, 0xFF53,},   //TVAR_wbt_pBaseCcms[5]
-{0x0F12, 0x0022,},   //TVAR_wbt_pBaseCcms[6]
-{0x0F12, 0xFFEA,},   //TVAR_wbt_pBaseCcms[7]
-{0x0F12, 0x01C2,},   //TVAR_wbt_pBaseCcms[8]
-{0x0F12, 0x00C6,},   //TVAR_wbt_pBaseCcms[9]
-{0x0F12, 0x0095,},   //TVAR_wbt_pBaseCcms[10]
-{0x0F12, 0xFEFD,},   //TVAR_wbt_pBaseCcms[11]
-{0x0F12, 0x0206,},   //TVAR_wbt_pBaseCcms[12]
-{0x0F12, 0xFF7F,},   //TVAR_wbt_pBaseCcms[13]
-{0x0F12, 0x0191,},   //TVAR_wbt_pBaseCcms[14]
-{0x0F12, 0xFF06,},   //TVAR_wbt_pBaseCcms[15]
-{0x0F12, 0x01BA,},   //TVAR_wbt_pBaseCcms[16]
-{0x0F12, 0x0108,},   //TVAR_wbt_pBaseCcms[17]
-{0x0F12, 0x0208,},		//TVAR_wbt_pBaseCcms[18]/* inca A */
-{0x0F12, 0xFFB5,},   //TVAR_wbt_pBaseCcms[19]
-{0x0F12, 0xFFE8,},   //TVAR_wbt_pBaseCcms[20]
-{0x0F12, 0xFF20,},   //TVAR_wbt_pBaseCcms[21]
-{0x0F12, 0x01BF,},   //TVAR_wbt_pBaseCcms[22]
-{0x0F12, 0xFF53,},   //TVAR_wbt_pBaseCcms[23]
-{0x0F12, 0x0022,},   //TVAR_wbt_pBaseCcms[24]
-{0x0F12, 0xFFEA,},   //TVAR_wbt_pBaseCcms[25]
-{0x0F12, 0x01C2,},   //TVAR_wbt_pBaseCcms[26]
-{0x0F12, 0x00C6,},   //TVAR_wbt_pBaseCcms[27]
-{0x0F12, 0x0095,},   //TVAR_wbt_pBaseCcms[28]
-{0x0F12, 0xFEFD,},   //TVAR_wbt_pBaseCcms[29]
-{0x0F12, 0x0206,},   //TVAR_wbt_pBaseCcms[30]
-{0x0F12, 0xFF7F,},   //TVAR_wbt_pBaseCcms[31]
-{0x0F12, 0x0191,},   //TVAR_wbt_pBaseCcms[32]
-{0x0F12, 0xFF06,},   //TVAR_wbt_pBaseCcms[33]
-{0x0F12, 0x01BA,},   //TVAR_wbt_pBaseCcms[34]
-{0x0F12, 0x0108,},   //TVAR_wbt_pBaseCcms[35]
+{0x0F12, 0x0252,}, //0280 //02CC //02D5 //02C2  //0208   //TVAR_wbt_pBaseCcms[0]
+{0x0F12, 0xFF8B,}, //FF71 //FF57 //FF53 //FF5D  //FFB5   //TVAR_wbt_pBaseCcms[1]
+{0x0F12, 0xFFC8,}, //FFB4 //FF81 //FF7D //FF86  //FFE8   //TVAR_wbt_pBaseCcms[2]
+{0x0F12, 0xFF01,}, //FEE5 //FEC7 //FEC2 //FECD  //FF20   //TVAR_wbt_pBaseCcms[3]
+{0x0F12, 0x01EB,}, //021A //024E //0257 //0244  //01BF   //TVAR_wbt_pBaseCcms[4]
+{0x0F12, 0xFF47,}, //FF33 //FF1D //FF19 //FF21  //FF53   //TVAR_wbt_pBaseCcms[5]
+{0x0F12, 0xFFDB,}, //FFC7 //FFA7 //FFA3 //FFAB  //0022   //TVAR_wbt_pBaseCcms[6]
+{0x0F12, 0xFFD9,}, //FFC5 //FFA5 //FFA1 //FFA9  //FFEA   //TVAR_wbt_pBaseCcms[7]
+{0x0F12, 0x021B,}, //0241 //0283 //028A //027A  //01C2   //TVAR_wbt_pBaseCcms[8]
+{0x0F12, 0x0102,}, //0119 //010F //0113 //010B  //00C6   //TVAR_wbt_pBaseCcms[9]
+{0x0F12, 0x00BF,}, //00D0 //0115 //0119 //0111  //0095   //TVAR_wbt_pBaseCcms[10]
+{0x0F12, 0xFE97,}, //FE6F //FE33 //FE2C //FE3C  //FEFD   //TVAR_wbt_pBaseCcms[11]
+{0x0F12, 0x0206,}, //0220 //022B //0230 //0226  //0206   //TVAR_wbt_pBaseCcms[12]
+{0x0F12, 0xFF57,}, //FF2A //FF16 //FF0F //FF1F  //FF7F   //TVAR_wbt_pBaseCcms[13]
+{0x0F12, 0x01BA,}, //01CC //01D4 //01D7 //01D0  //0191   //TVAR_wbt_pBaseCcms[14]
+{0x0F12, 0xFEF1,}, //FEC6 //FE84 //FE7D //FE8E  //FF06   //TVAR_wbt_pBaseCcms[15]
+{0x0F12, 0x016D,}, //0183 //01A4 //01A8 //019F  //01BA   //TVAR_wbt_pBaseCcms[16]
+{0x0F12, 0x0169,}, //017F //01A0 //01A4 //019B  //0108   //TVAR_wbt_pBaseCcms[17]
+{0x0F12, 0x0234,}, //0251 //0262 //0287 //0262  //0208		//TVAR_wbt_pBaseCcms[18]/* inca A */
+{0x0F12, 0xFF9A,}, //FF8B //FF82 //FF72 //FF82  //FFB5   //TVAR_wbt_pBaseCcms[19]
+{0x0F12, 0xFFD3,}, //FFC7 //FFC1 //FFAA //FFC1  //FFE8   //TVAR_wbt_pBaseCcms[20]
+{0x0F12, 0xFF11,}, //FF00 //FEF7 //FEE5 //FEF7  //FF20   //TVAR_wbt_pBaseCcms[21]
+{0x0F12, 0x01CC,}, //01EA //01FB //0218 //01FB  //01BF   //TVAR_wbt_pBaseCcms[22]
+{0x0F12, 0xFF53,}, //FF46 //FF40 //FF32 //FF40  //FF53   //TVAR_wbt_pBaseCcms[23]
+{0x0F12, 0xFFE6,}, //FFDA //FFD4 //FFC3 //FFD4  //0022   //TVAR_wbt_pBaseCcms[24]
+{0x0F12, 0xFFE4,}, //FFD8 //FFD2 //FFC1 //FFD2  //FFEA   //TVAR_wbt_pBaseCcms[25]
+{0x0F12, 0x0201,}, //0219 //0228 //0247 //0228  //01C2   //TVAR_wbt_pBaseCcms[26]
+{0x0F12, 0x00F2,}, //0101 //010A //010D //010A  //00C6   //TVAR_wbt_pBaseCcms[27]
+{0x0F12, 0x00B4,}, //00BF //00C5 //00DF //00C5  //0095   //TVAR_wbt_pBaseCcms[28]
+{0x0F12, 0xFEAD,}, //FE96 //FE89 //FE6A //FE89  //FEFD   //TVAR_wbt_pBaseCcms[29]
+{0x0F12, 0x01F6,}, //0205 //020F //0219 //020F  //0206   //TVAR_wbt_pBaseCcms[30]
+{0x0F12, 0xFF70,}, //FF55 //FF47 //FF33 //FF47  //FF7F   //TVAR_wbt_pBaseCcms[31]
+{0x0F12, 0x01AE,}, //01B9 //01C0 //01C7 //01C0  //0191   //TVAR_wbt_pBaseCcms[32]
+{0x0F12, 0xFF0B,}, //FEF1 //FEE2 //FEC0 //FEE2  //FF06   //TVAR_wbt_pBaseCcms[33]
+{0x0F12, 0x0160,}, //016D //0175 //0185 //0175  //01BA   //TVAR_wbt_pBaseCcms[34]
+{0x0F12, 0x015C,}, //0169 //0171 //0181 //0171  //0108   //TVAR_wbt_pBaseCcms[35]
 {0x0F12, 0x0208,},	  //TVAR_wbt_pBaseCcms[36] /*WW*/
 {0x0F12, 0xFFB5,},   //TVAR_wbt_pBaseCcms[37]
 {0x0F12, 0xFFE8,},   //TVAR_wbt_pBaseCcms[38]
@@ -2760,7 +2760,7 @@ static struct msm_camera_i2c_reg_conf s5k4ecgx_init_regs[] = {
 {0x0F12, 0x1A02,},    //70000A18 AFIT8_yuviirnr_iYNRStrengthH   [7:0] AFIT8_yuviirnr_iUVNRStrengthL
 {0x0F12, 0x4A18,},    //70000A1A AFIT8_yuviirnr_iUVNRStrengthH   [7:0] AFIT8_byr_gras_iShadingPower
 {0x0F12, 0x0080,},    //70000A1C AFIT8_RGBGamma2_iLinearity   [7:0] AFIT8_RGBGamma2_iDarkReduce
-{0x0F12, 0x0350,},    //70000A1E AFIT8_ccm_oscar_iSaturation   [7:0] AFIT8_RGB2YUV_iYOffset
+{0x0F12, 0x0380,},  //0350  //70000A1E AFIT8_ccm_oscar_iSaturation   [7:0] AFIT8_RGB2YUV_iYOffset
 {0x0F12, 0x0180,},    //70000A20 AFIT8_RGB2YUV_iRGBGain   [7:0] AFIT8_bnr_nClustLevel_H
 {0x0F12, 0x0A0A,},    //70000A22 AFIT8_bnr_iClustMulT_H   [7:0] AFIT8_bnr_iClustMulT_C
 {0x0F12, 0x0101,},    //70000A24 AFIT8_bnr_iClustThresh_H   [7:0] AFIT8_bnr_iClustThresh_C
@@ -3289,6 +3289,7 @@ static struct msm_camera_i2c_reg_conf s5k4ecgx_WB_Auto[] = {
 {0x0028, 0x7000,},
 //{0x002A, 0x04E6,},   // S/W Program */
 //{0x0F12, 0x077F,},
+{0xFFFF, 0x000A,}, /*Delay 10ms*/
 };
 
 static struct msm_camera_i2c_reg_conf  s5k4ecgx_WB_Sunny[] = {
@@ -3304,6 +3305,7 @@ static struct msm_camera_i2c_reg_conf  s5k4ecgx_WB_Sunny[] = {
 {0x0F12, 0x0608,}, //
 {0x002A, 0x04C6,}, //RGB gain changed
 {0x0F12, 0x0001,},
+{0xFFFF, 0x000A,}, /*Delay 10ms*/
 };
 
 static struct msm_camera_i2c_reg_conf  s5k4ecgx_WB_Cloudy[] = {
@@ -3319,6 +3321,7 @@ static struct msm_camera_i2c_reg_conf  s5k4ecgx_WB_Cloudy[] = {
 {0x0F12, 0x0560,},
 {0x002A, 0x04C6,},
 {0x0F12, 0x0001,},
+{0xFFFF, 0x000A,}, /*Delay 10ms*/
 };
 
 static struct msm_camera_i2c_reg_conf  s5k4ecgx_WB_Tungsten[] = {
@@ -3334,6 +3337,7 @@ static struct msm_camera_i2c_reg_conf  s5k4ecgx_WB_Tungsten[] = {
 {0x0F12, 0x09A0,},
 {0x002A, 0x04C6,},
 {0x0F12, 0x0001,},
+{0xFFFF, 0x000A,}, /*Delay 10ms*/
 };
 
 static struct msm_camera_i2c_reg_conf  s5k4ecgx_WB_Fluorescent[] = {
@@ -3349,6 +3353,7 @@ static struct msm_camera_i2c_reg_conf  s5k4ecgx_WB_Fluorescent[] = {
 {0x0F12, 0x0860,}, 
 {0x002A, 0x04C6,},
 {0x0F12, 0x0001,},
+{0xFFFF, 0x000A,}, /*Delay 10ms*/
 };
 
 static struct msm_camera_i2c_reg_conf  s5k4ecgx_ISO_Auto[] = {
@@ -3371,6 +3376,7 @@ static struct msm_camera_i2c_reg_conf  s5k4ecgx_ISO_Auto[] = {
 {0x0F12, 0x0001,},		/*REG_SF_USER_IsoChanged */
 {0x002A, 0x06C2,},
 {0x0F12, 0x0200,},	  /*lt_bUseSecISODgain */
+{0xFFFF, 0x000A,}, /*Delay 10ms*/
 };
 
 static struct msm_camera_i2c_reg_conf  s5k4ecgx_ISO_50[] = {
@@ -3394,6 +3400,7 @@ static struct msm_camera_i2c_reg_conf  s5k4ecgx_ISO_50[] = {
 {0x0F12, 0x0001,},		/*REG_SF_USER_IsoChanged */
 {0x002A, 0x06C2,},
 {0x0F12, 0x0100,},	/*lt_bUseSecISODgain */
+{0xFFFF, 0x000A,}, /*Delay 10ms*/
 };
 
 static struct msm_camera_i2c_reg_conf  s5k4ecgx_ISO_100[] = {
@@ -3417,6 +3424,7 @@ static struct msm_camera_i2c_reg_conf  s5k4ecgx_ISO_100[] = {
 {0x0F12, 0x0001,},		/*REG_SF_USER_IsoChanged */
 {0x002A, 0x06C2,},
 {0x0F12, 0x0100,},	/*lt_bUseSecISODgain */
+{0xFFFF, 0x000A,}, /*Delay 10ms*/
 };
 
 static struct msm_camera_i2c_reg_conf  s5k4ecgx_ISO_200[] = {
@@ -3440,6 +3448,7 @@ static struct msm_camera_i2c_reg_conf  s5k4ecgx_ISO_200[] = {
 {0x0F12, 0x0001,},		/*REG_SF_USER_IsoChanged */
 {0x002A, 0x06C2,},
 {0x0F12, 0x0100,},	/*lt_bUseSecISODgain */
+{0xFFFF, 0x000A,}, /*Delay 10ms*/
 };
 
 static struct msm_camera_i2c_reg_conf  s5k4ecgx_ISO_400[] = {
@@ -3463,6 +3472,7 @@ static struct msm_camera_i2c_reg_conf  s5k4ecgx_ISO_400[] = {
 {0x0F12, 0x0001,},		/*REG_SF_USER_IsoChanged */
 {0x002A, 0x06C2,},
 {0x0F12, 0x0100,},	/*lt_bUseSecISODgain */
+{0xFFFF, 0x000A,}, /*Delay 10ms*/
 };
 
 static struct msm_camera_i2c_reg_conf  s5k4ecgx_Metering_Matrix[] = {
@@ -3701,7 +3711,7 @@ static struct msm_camera_i2c_reg_conf  s5k4ecgx_Scene_Default[] = {
 {0x0F12, 0x452C,},
 {0x0F12, 0x0005,},	/*lt_uMaxLei */
 {0x002A, 0x0A1E,},
-{0x0F12, 0x0350,},/*_ccm_oscar_iSaturation [7:0] AFIT8_RGB2YUV_iYOffset init */
+{0x0F12, 0x0380,},/* 0350_ccm_oscar_iSaturation [7:0] AFIT8_RGB2YUV_iYOffset init */
 {0x002A, 0x0638,},
 {0x0F12, 0x0001,},
 {0x0F12, 0x0000,},/*lt_ExpGain_ExpCurveGainMaxStr_0__ulExpOut_0_ */
@@ -4892,42 +4902,42 @@ static struct msm_camera_i2c_reg_conf  s5k4ecgx_camcorder_disable[] = {
 {0x0F12, 0xFFE0,}, //awbb_BGainOff
 {0x0F12, 0x0000,}, //awbb_GGainOff
 {0x002A, 0x4800,}, // Horizon
-{0x0F12, 0x0208,}, //TVAR_wbt_pBaseCcms[0]
-{0x0F12, 0xFFB5,}, //TVAR_wbt_pBaseCcms[1]
-{0x0F12, 0xFFE8,}, //TVAR_wbt_pBaseCcms[2]
-{0x0F12, 0xFF20,}, //TVAR_wbt_pBaseCcms[3]
-{0x0F12, 0x01BF,}, //TVAR_wbt_pBaseCcms[4]
-{0x0F12, 0xFF53,}, //TVAR_wbt_pBaseCcms[5]
-{0x0F12, 0x0022,}, //TVAR_wbt_pBaseCcms[6]
-{0x0F12, 0xFFEA,}, //TVAR_wbt_pBaseCcms[7]
-{0x0F12, 0x01C2,}, //TVAR_wbt_pBaseCcms[8]
-{0x0F12, 0x00C6,}, //TVAR_wbt_pBaseCcms[9]
-{0x0F12, 0x0095,}, //TVAR_wbt_pBaseCcms[10]
-{0x0F12, 0xFEFD,}, //TVAR_wbt_pBaseCcms[11]
-{0x0F12, 0x0206,}, //TVAR_wbt_pBaseCcms[12]
-{0x0F12, 0xFF7F,}, //TVAR_wbt_pBaseCcms[13]
-{0x0F12, 0x0191,}, //TVAR_wbt_pBaseCcms[14]
-{0x0F12, 0xFF06,}, //TVAR_wbt_pBaseCcms[15]
-{0x0F12, 0x01BA,}, //TVAR_wbt_pBaseCcms[16]
-{0x0F12, 0x0108,}, //TVAR_wbt_pBaseCcms[17]
-{0x0F12, 0x0208,}, //TVAR_wbt_pBaseCcms[18]/* inca A */
-{0x0F12, 0xFFB5,}, //TVAR_wbt_pBaseCcms[19]
-{0x0F12, 0xFFE8,}, //TVAR_wbt_pBaseCcms[20]
-{0x0F12, 0xFF20,}, //TVAR_wbt_pBaseCcms[21]
-{0x0F12, 0x01BF,}, //TVAR_wbt_pBaseCcms[22]
-{0x0F12, 0xFF53,}, //TVAR_wbt_pBaseCcms[23]
-{0x0F12, 0x0022,}, //TVAR_wbt_pBaseCcms[24]
-{0x0F12, 0xFFEA,}, //TVAR_wbt_pBaseCcms[25]
-{0x0F12, 0x01C2,}, //TVAR_wbt_pBaseCcms[26]
-{0x0F12, 0x00C6,}, //TVAR_wbt_pBaseCcms[27]
-{0x0F12, 0x0095,}, //TVAR_wbt_pBaseCcms[28]
-{0x0F12, 0xFEFD,}, //TVAR_wbt_pBaseCcms[29]
-{0x0F12, 0x0206,}, //TVAR_wbt_pBaseCcms[30]
-{0x0F12, 0xFF7F,}, //TVAR_wbt_pBaseCcms[31]
-{0x0F12, 0x0191,}, //TVAR_wbt_pBaseCcms[32]
-{0x0F12, 0xFF06,}, //TVAR_wbt_pBaseCcms[33]
-{0x0F12, 0x01BA,}, //TVAR_wbt_pBaseCcms[34]
-{0x0F12, 0x0108,}, //TVAR_wbt_pBaseCcms[35]
+{0x0F12, 0x0252,}, //0280 //02CC //02D5 //02C2  //0208   //TVAR_wbt_pBaseCcms[0]
+{0x0F12, 0xFF8B,}, //FF71 //FF57 //FF53 //FF5D  //FFB5   //TVAR_wbt_pBaseCcms[1]
+{0x0F12, 0xFFC8,}, //FFB4 //FF81 //FF7D //FF86  //FFE8   //TVAR_wbt_pBaseCcms[2]
+{0x0F12, 0xFF01,}, //FEE5 //FEC7 //FEC2 //FECD  //FF20   //TVAR_wbt_pBaseCcms[3]
+{0x0F12, 0x01EB,}, //021A //024E //0257 //0244  //01BF   //TVAR_wbt_pBaseCcms[4]
+{0x0F12, 0xFF47,}, //FF33 //FF1D //FF19 //FF21  //FF53   //TVAR_wbt_pBaseCcms[5]
+{0x0F12, 0xFFDB,}, //FFC7 //FFA7 //FFA3 //FFAB  //0022   //TVAR_wbt_pBaseCcms[6]
+{0x0F12, 0xFFD9,}, //FFC5 //FFA5 //FFA1 //FFA9  //FFEA   //TVAR_wbt_pBaseCcms[7]
+{0x0F12, 0x021B,}, //0241 //0283 //028A //027A  //01C2   //TVAR_wbt_pBaseCcms[8]
+{0x0F12, 0x0102,}, //0119 //010F //0113 //010B  //00C6   //TVAR_wbt_pBaseCcms[9]
+{0x0F12, 0x00BF,}, //00D0 //0115 //0119 //0111  //0095   //TVAR_wbt_pBaseCcms[10]
+{0x0F12, 0xFE97,}, //FE6F //FE33 //FE2C //FE3C  //FEFD   //TVAR_wbt_pBaseCcms[11]
+{0x0F12, 0x0206,}, //0220 //022B //0230 //0226  //0206   //TVAR_wbt_pBaseCcms[12]
+{0x0F12, 0xFF57,}, //FF2A //FF16 //FF0F //FF1F  //FF7F   //TVAR_wbt_pBaseCcms[13]
+{0x0F12, 0x01BA,}, //01CC //01D4 //01D7 //01D0  //0191   //TVAR_wbt_pBaseCcms[14]
+{0x0F12, 0xFEF1,}, //FEC6 //FE84 //FE7D //FE8E  //FF06   //TVAR_wbt_pBaseCcms[15]
+{0x0F12, 0x016D,}, //0183 //01A4 //01A8 //019F  //01BA   //TVAR_wbt_pBaseCcms[16]
+{0x0F12, 0x0169,}, //017F //01A0 //01A4 //019B  //0108   //TVAR_wbt_pBaseCcms[17]
+{0x0F12, 0x0234,}, //0251 //0262 //0287 //0262  //0208		//TVAR_wbt_pBaseCcms[18]/* inca A */
+{0x0F12, 0xFF9A,}, //FF8B //FF82 //FF72 //FF82  //FFB5   //TVAR_wbt_pBaseCcms[19]
+{0x0F12, 0xFFD3,}, //FFC7 //FFC1 //FFAA //FFC1  //FFE8   //TVAR_wbt_pBaseCcms[20]
+{0x0F12, 0xFF11,}, //FF00 //FEF7 //FEE5 //FEF7  //FF20   //TVAR_wbt_pBaseCcms[21]
+{0x0F12, 0x01CC,}, //01EA //01FB //0218 //01FB  //01BF   //TVAR_wbt_pBaseCcms[22]
+{0x0F12, 0xFF53,}, //FF46 //FF40 //FF32 //FF40  //FF53   //TVAR_wbt_pBaseCcms[23]
+{0x0F12, 0xFFE6,}, //FFDA //FFD4 //FFC3 //FFD4  //0022   //TVAR_wbt_pBaseCcms[24]
+{0x0F12, 0xFFE4,}, //FFD8 //FFD2 //FFC1 //FFD2  //FFEA   //TVAR_wbt_pBaseCcms[25]
+{0x0F12, 0x0201,}, //0219 //0228 //0247 //0228  //01C2   //TVAR_wbt_pBaseCcms[26]
+{0x0F12, 0x00F2,}, //0101 //010A //010D //010A  //00C6   //TVAR_wbt_pBaseCcms[27]
+{0x0F12, 0x00B4,}, //00BF //00C5 //00DF //00C5  //0095   //TVAR_wbt_pBaseCcms[28]
+{0x0F12, 0xFEAD,}, //FE96 //FE89 //FE6A //FE89  //FEFD   //TVAR_wbt_pBaseCcms[29]
+{0x0F12, 0x01F6,}, //0205 //020F //0219 //020F  //0206   //TVAR_wbt_pBaseCcms[30]
+{0x0F12, 0xFF70,}, //FF55 //FF47 //FF33 //FF47  //FF7F   //TVAR_wbt_pBaseCcms[31]
+{0x0F12, 0x01AE,}, //01B9 //01C0 //01C7 //01C0  //0191   //TVAR_wbt_pBaseCcms[32]
+{0x0F12, 0xFF0B,}, //FEF1 //FEE2 //FEC0 //FEE2  //FF06   //TVAR_wbt_pBaseCcms[33]
+{0x0F12, 0x0160,}, //016D //0175 //0185 //0175  //01BA   //TVAR_wbt_pBaseCcms[34]
+{0x0F12, 0x015C,}, //0169 //0171 //0181 //0171  //0108   //TVAR_wbt_pBaseCcms[35]
 {0x0F12, 0x0208,}, //TVAR_wbt_pBaseCcms[36] /*WW*/
 {0x0F12, 0xFFB5,}, //TVAR_wbt_pBaseCcms[37]
 {0x0F12, 0xFFE8,}, //TVAR_wbt_pBaseCcms[38]
@@ -5081,7 +5091,7 @@ static struct msm_camera_i2c_reg_conf  s5k4ecgx_camcorder_disable[] = {
 {0x0F12, 0x1A02,}, //70000A18 AFIT8_yuviirnr_iYNRStrengthH [7:0] AFIT8_yuviirnr_iUVNRStrengthL
 {0x0F12, 0x4A18,}, //70000A1A AFIT8_yuviirnr_iUVNRStrengthH [7:0] AFIT8_byr_gras_iShadingPower
 {0x0F12, 0x0080,}, //70000A1C AFIT8_RGBGamma2_iLinearity [7:0] AFIT8_RGBGamma2_iDarkReduce
-{0x0F12, 0x0350,}, //70000A1E AFIT8_ccm_oscar_iSaturation [7:0] AFIT8_RGB2YUV_iYOffset
+{0x0F12, 0x0380,}, //0350 //70000A1E AFIT8_ccm_oscar_iSaturation [7:0] AFIT8_RGB2YUV_iYOffset
 {0x0F12, 0x0180,}, //70000A20 AFIT8_RGB2YUV_iRGBGain [7:0] AFIT8_bnr_nClustLevel_H
 {0x0F12, 0x0A0A,}, //70000A22 AFIT8_bnr_iClustMulT_H [7:0] AFIT8_bnr_iClustMulT_C
 {0x0F12, 0x0101,}, //70000A24 AFIT8_bnr_iClustThresh_H [7:0] AFIT8_bnr_iClustThresh_C

@@ -630,6 +630,30 @@ static ssize_t set_prox_delay(struct device *dev,
 	return size;
 }
 
+#ifdef CONFIG_SENSORS_SSP_UV
+static ssize_t show_uv_delay(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct ssp_data *data = dev_get_drvdata(dev);
+
+	return sprintf(buf, "%lld\n", data->adDelayBuf[UV_SENSOR]);
+}
+
+static ssize_t set_uv_delay(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t size)
+{
+	int64_t dNewDelay;
+	struct ssp_data *data = dev_get_drvdata(dev);
+
+	if (kstrtoll(buf, 10, &dNewDelay) < 0)
+		return -EINVAL;
+
+	pr_info("[SSP] %s - %lld\n", __func__, dNewDelay);
+	change_sensor_delay(data, UV_SENSOR, dNewDelay);
+
+	return size;
+}
+#endif
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 static ssize_t show_temp_humi_delay(struct device *dev,
 	struct device_attribute *attr, char *buf)
@@ -732,6 +756,13 @@ static struct device_attribute dev_attr_light_poll_delay
 static struct device_attribute dev_attr_prox_poll_delay
 	= __ATTR(poll_delay, S_IRUGO | S_IWUSR | S_IWGRP,
 	show_prox_delay, set_prox_delay);
+
+#ifdef CONFIG_SENSORS_SSP_UV
+static struct device_attribute dev_attr_uv_poll_delay
+	= __ATTR(poll_delay, S_IRUGO | S_IWUSR | S_IWGRP,
+	show_uv_delay, set_uv_delay);
+#endif
+
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 static struct device_attribute dev_attr_temp_humi_poll_delay
 	= __ATTR(poll_delay, S_IRUGO | S_IWUSR | S_IWGRP,
@@ -888,6 +919,11 @@ int initialize_sysfs(struct ssp_data *data)
 		&dev_attr_prox_poll_delay))
 		goto err_prox_input_dev;
 
+#ifdef CONFIG_SENSORS_SSP_UV
+	if (device_create_file(&data->uv_input_dev->dev,
+		&dev_attr_uv_poll_delay))
+		goto err_uv_input_dev;
+#endif
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 	if (device_create_file(&data->temp_humi_input_dev->dev,
 			&dev_attr_temp_humi_poll_delay))
@@ -964,6 +1000,11 @@ err_mag_input_dev:
 		&dev_attr_temp_humi_poll_delay);
 err_temp_humi_input_dev:
 #endif
+#ifdef CONFIG_SENSORS_SSP_UV
+	device_remove_file(&data->uv_input_dev->dev,
+		&dev_attr_uv_poll_delay);
+err_uv_input_dev:
+#endif
 	device_remove_file(&data->prox_input_dev->dev,
 		&dev_attr_prox_poll_delay);
 err_prox_input_dev:
@@ -994,6 +1035,10 @@ void remove_sysfs(struct ssp_data *data)
 #ifdef CONFIG_SENSORS_SSP_SHTC1
 	device_remove_file(&data->temp_humi_input_dev->dev,
 		&dev_attr_temp_humi_poll_delay);
+#endif
+#ifdef CONFIG_SENSORS_SSP_UV
+	device_remove_file(&data->uv_input_dev->dev,
+		&dev_attr_uv_poll_delay);
 #endif
 	device_remove_file(&data->mag_input_dev->dev,
 		&dev_attr_mag_poll_delay);

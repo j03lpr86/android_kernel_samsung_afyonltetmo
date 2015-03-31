@@ -1852,6 +1852,9 @@ static int gp2a_suspend(struct device *dev)
 	struct gp2a_data *data = i2c_get_clientdata(client);
 	int err=0;
 
+#ifdef CONFIG_SENSORS_GP2A030A_PROX
+	disable_irq(data->irq);
+#endif
 	if (data->light_enabled) {
 		cancel_delayed_work_sync(&data->light_work);
 		lightsensor_onoff(0, data);

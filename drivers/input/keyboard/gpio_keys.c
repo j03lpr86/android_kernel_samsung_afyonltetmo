@@ -1150,7 +1150,9 @@ static void gpio_remove_key(struct gpio_button_data *bdata)
 
 #ifdef CONFIG_SEC_PATEK_PROJECT
 extern int check_short_key(void);
-extern int check_short_pkey(void);
+#endif
+#if defined(CONFIG_SEC_PATEK_PROJECT) || defined(CONFIG_SEC_S_PROJECT)
+extern int check_short_pkey(void);	// using qpnp_power_on.c
 #endif
 
 static ssize_t  sysfs_key_onoff_show(struct device *dev,
@@ -1175,6 +1177,33 @@ static ssize_t  sysfs_key_onoff_show(struct device *dev,
 	return snprintf(buf, 5, "%d\n", state);
 }
 static DEVICE_ATTR(sec_key_pressed, 0664 , sysfs_key_onoff_show, NULL);
+
+#if defined(CONFIG_SEC_S_PROJECT) 
+static ssize_t sysfs_key_code_show(struct device *dev,
+				struct device_attribute *attr, char *buf)
+{
+	struct gpio_keys_drvdata *ddata = dev_get_drvdata(dev);
+	int i;
+	int volume_up=0, volume_down=0, power=0;
+
+	for (i = 0; i < ddata->n_buttons; i++) {
+		struct gpio_button_data *bdata = &ddata->data[i];
+		
+		if(bdata->button->code==KEY_VOLUMEUP)
+			volume_up = (gpio_get_value_cansleep(bdata->button->gpio) ? 1 : 0) ^ bdata->button->active_low;
+		else if(bdata->button->code==KEY_VOLUMEDOWN)
+			volume_down = (gpio_get_value_cansleep(bdata->button->gpio) ? 1 : 0) ^ bdata->button->active_low;
+		
+		//pr_info("%s, code=%d %d/%d\n",  __func__,bdata->button->code, i,ddata->n_buttons );
+	}
+	power = check_short_pkey();
+
+	sprintf(buf, "%d %d %d", volume_up, volume_down, power);
+
+	return strlen(buf);
+}
+static DEVICE_ATTR(sec_key_pressed_code, 0664 , sysfs_key_code_show, NULL);
+#endif
 
 /* the volume keys can be the wakeup keys in special case */
 static ssize_t wakeup_enable(struct device *dev,
@@ -1362,6 +1391,14 @@ static int __devinit gpio_keys_probe(struct platform_device *pdev)
 		pr_err("Failed to create device file in sysfs entries(%s)!\n",
 				dev_attr_sec_key_pressed.attr.name);
 	}
+#if defined(CONFIG_SEC_S_PROJECT) 	
+	ret = device_create_file(sec_key, &dev_attr_sec_key_pressed_code);
+	if (ret) {
+		pr_err("Failed to create device file in sysfs entries(%s)!\n",
+				dev_attr_sec_key_pressed_code.attr.name);
+	}
+#endif
+	
 #ifdef CONFIG_SENSORS_HALL_IRQ_CTRL
 	if(ddata->gpio_flip_cover != 0) {
 		ret = device_create_file(sec_key, &dev_attr_hall_irq_ctrl);

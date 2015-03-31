@@ -140,6 +140,10 @@ static int test_task_flag(struct task_struct *p, int flag)
 
 static DEFINE_MUTEX(scan_mutex);
 
+#if defined(CONFIG_CMA_PAGE_COUNTING)
+#define SSWAP_LMK_THRESHOLD	(30720 * 2)
+#define CMA_PAGE_RATIO		70
+#endif
 static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 {
 	struct task_struct *tsk;
@@ -156,6 +160,14 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	unsigned long nr_to_scan = sc->nr_to_scan;
 #ifdef CONFIG_SEC_DEBUG_LMK_MEMINFO
 	static DEFINE_RATELIMIT_STATE(lmk_rs, DEFAULT_RATELIMIT_INTERVAL, 1);
+#endif
+#if defined(CONFIG_CMA_PAGE_COUNTING)
+	unsigned long nr_cma_free;
+	unsigned long nr_cma_inactive_file;
+	unsigned long nr_cma_active_file;
+	unsigned long cma_page_ratio;
+	bool is_active_high;
+	bool flag = 0;
 #endif
 
 	if (nr_to_scan > 0) {

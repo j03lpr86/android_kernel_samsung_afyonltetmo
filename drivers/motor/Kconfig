@@ -32,6 +32,11 @@ config MOTOR_DRV_MAX77828
 	default n
 	depends on MFD_MAX77828
 
+config MOTOR_DRV_MAX77888
+	tristate "Maxim MAX77888 motor"
+	default n
+	depends on MFD_MAX77888
+
 config MOTOR_DRV_ISA1400
 	tristate "ISA1400 motor"
 	default n

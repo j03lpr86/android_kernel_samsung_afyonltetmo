@@ -37,7 +37,7 @@ extern int check_sm5502_jig_state(void);
 static struct battery_data_t samsung_battery_data[] = {
   /* SDI battery data (High voltage 4.35V) */
   {
-#if defined(CONFIG_MACH_AFYONLTE_TMO) || defined(CONFIG_MACH_AFYONLTE_CAN)
+#if defined(CONFIG_MACH_AFYONLTE_TMO) || defined(CONFIG_MACH_AFYONLTE_CAN) || defined(CONFIG_MACH_AFYONLTE_MTR)
     .RCOMP0 = 0x55,
     .RCOMP_charging = 0x55,
     .temp_cohot = -75,

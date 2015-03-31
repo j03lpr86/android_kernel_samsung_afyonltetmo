@@ -1707,7 +1707,9 @@ qpnp_chg_usb_usbin_valid_irq_handler(int irq, void *_chip)
 			#endif
 			schedule_work(&chip->soc_check_work);
 		}
+		#ifndef SEC_CHARGER_CODE
 		power_supply_set_present(chip->usb_psy, chip->usb_present);
+		#endif
 	}
 
 	#if 0
@@ -1778,8 +1780,9 @@ qpnp_chg_usb_usbin_valid_irq_handler(int irq, void *_chip)
 			schedule_delayed_work(&chip->eoc_work,
 				msecs_to_jiffies(EOC_CHECK_PERIOD_MS));
 		}
-
+		#ifndef SEC_CHARGER_CODE
 		power_supply_set_present(chip->usb_psy, chip->usb_present);
+		#endif
 	}
 
 	return IRQ_HANDLED;
@@ -6314,8 +6317,11 @@ static void sec_bat_monitor(struct work_struct *work)
 #ifdef SEC_BTM_TEST
 	static u8 btm_count;
 #endif
+	#if defined(CONFIG_MACH_CS03_SGLTE) || defined(CONFIG_MACH_Q7_CHN_SGLTE) || defined(CONFIG_MACH_VICTOR_CHN_SGLTE)
 	int rc;
 	u8 buck_sts = 0;
+	#endif
+
 
 	if (chip->is_in_sleep)
 		chip->is_in_sleep = false;
@@ -6415,6 +6421,7 @@ static void sec_bat_monitor(struct work_struct *work)
 
 	if (chip->batt_status == POWER_SUPPLY_STATUS_CHARGING || chip->is_recharging) {
 		if ( qpnp_chg_is_usb_chg_plugged_in(chip) && !chip->charging_disabled ) {
+			#if defined(CONFIG_MACH_CS03_SGLTE) || defined(CONFIG_MACH_Q7_CHN_SGLTE) || defined(CONFIG_MACH_VICTOR_CHN_SGLTE)
 			rc = qpnp_chg_read(chip, &buck_sts, INT_RT_STS(chip->buck_base), 1);
 			if (!rc) {
 				if (buck_sts & VDD_LOOP_IRQ) {
@@ -6423,6 +6430,7 @@ static void sec_bat_monitor(struct work_struct *work)
 			} else {
 				pr_err("failed to read buck rc=%d\n", rc);
 			}
+			#endif
 			if(chip->ui_full_chg) { /* second phase charging */
 				pr_err("second phase charging: ui_full_chg(%d) \n",chip->ui_full_chg);
 

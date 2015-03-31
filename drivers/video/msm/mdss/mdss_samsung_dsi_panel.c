@@ -1210,6 +1210,23 @@ static struct dsi_cmd get_hbm_etc_control_set(void)
 		etc_hbm_control.cmd_desc = &(hbm_etc_cmds_evt0_second_list.cmd_desc[0]);
 		etc_hbm_control.num_of_cmds = hbm_etc_cmds_evt0_second_list.num_of_cmds;
 	}
+#elif defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)
+	if ((msd.id3 == EVT2_EA8061V_REV_D) || (msd.id3 == EVT2_EA8061V_REV_E) ){
+		if (msd.dstat.acl_on || msd.dstat.siop_status) {
+			hbm_etc_cmds_list.cmd_desc[2].payload[1] = 0x4C;
+			hbm_etc_cmds_list.cmd_desc[6].payload[1] = 0x02;
+		} else {
+			hbm_etc_cmds_list.cmd_desc[2].payload[1] = 0x5C;
+			hbm_etc_cmds_list.cmd_desc[6].payload[1] = 0x00;
+		}
+	} else {
+		if (msd.dstat.acl_on || msd.dstat.siop_status)
+			hbm_etc_cmds_list.cmd_desc[5].payload[1] = 0x02;
+		else
+			hbm_etc_cmds_list.cmd_desc[5].payload[1] = 0x00;
+	}
+	etc_hbm_control.cmd_desc = &(hbm_etc_cmds_list.cmd_desc[0]);
+	etc_hbm_control.num_of_cmds = hbm_etc_cmds_list.num_of_cmds;
 #else
 #if defined(TEMPERATURE_ELVSS_S6E8AA4)
 		if (msd.dstat.temperature > 0) {

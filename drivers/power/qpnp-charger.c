@@ -1374,6 +1374,7 @@ qpnp_chg_set_appropriate_vddmax(struct qpnp_chg_chip *chip)
 				chip->delta_vddmax_mv);
 }
 
+#if defined(CONFIG_SEC_VICTOR_PROJECT)
 #define MIN_DELTA_MV_TO_INCREASE_VDD_MAX	8
 #define MAX_DELTA_VDD_MAX_MV			80
 #define VDD_MAX_CENTER_OFFSET			4
@@ -1399,6 +1400,7 @@ qpnp_chg_adjust_vddmax(struct qpnp_chg_chip *chip, int vbat_mv)
 	pr_debug("using delta_vddmax_mv = %d\n", chip->delta_vddmax_mv);
 	qpnp_chg_set_appropriate_vddmax(chip);
 }
+#endif
 
 static void
 qpnp_usbin_health_check_work(struct work_struct *work)
@@ -3980,6 +3982,7 @@ qpnp_chg_setup_flags(struct qpnp_chg_chip *chip)
 	return 0;
 }
 
+#if defined(CONFIG_SEC_VICTOR_PROJECT)
 static void
 sec_qpnp_chg_check_vddmax(struct qpnp_chg_chip *chip)
 {
@@ -3998,6 +4001,7 @@ sec_qpnp_chg_check_vddmax(struct qpnp_chg_chip *chip)
 				pr_err("failed to read buck rc=%d\n", rc);
 	}
 }
+#endif
 
 static int
 qpnp_chg_request_irqs(struct qpnp_chg_chip *chip)
@@ -4841,7 +4845,9 @@ sec_qpnp_chg_get_property(struct power_supply *psy,
 				val->intval = POWER_SUPPLY_HEALTH_GOOD;
 			break;
 		case POWER_SUPPLY_PROP_CURRENT_MAX:
+			#if defined(CONFIG_SEC_VICTOR_PROJECT)
 			sec_qpnp_chg_check_vddmax(chip);
+			#endif
 			val->intval = charger->charging_current_max;
 			break;
 		case POWER_SUPPLY_PROP_CURRENT_AVG:
